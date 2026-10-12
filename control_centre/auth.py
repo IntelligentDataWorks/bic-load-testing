@@ -410,7 +410,7 @@ def inspect_storage_state(
 def codegen_command(base_url: str, storage_state: Path = PLAYWRIGHT_STORAGE_STATE) -> list[str]:
     """argv for the existing Playwright Codegen capture flow (local use only).
 
-    Mirrors the command documented in docs/playwright-setup-and-demo.md.
+    Mirrors the command documented in docs/playwright-recording.md.
     """
     npx = shutil.which("npx") or "npx"
     return [

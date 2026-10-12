@@ -1,11 +1,13 @@
-# BIC Load Testing: Setup and Demo Runbook
+# BIC Load Testing: Runbook
 
 **Start here.** This guide takes you from a fresh Windows laptop to running load and
 user-session tests against the IRIS (DS Insights Companion) DEV app, using the local
 Streamlit control centre. Setup takes about 15 minutes.
 
-> **Prefer to let Copilot do the setup?** Open this folder in VS Code and paste the
-> prompt from [section 10](#10-set-up-with-github-copilot) into Copilot Chat (agent mode).
+> **Let GitHub Copilot do it.** Open this folder in VS Code, open Copilot Chat in
+> **Agent** mode and type **`/bic-playbook`**. Copilot follows this runbook, asks you for
+> anything it needs, and stops when a step needs you in the browser. See
+> [section 10](#10-set-up-with-github-copilot).
 
 What the tool does:
 
@@ -44,52 +46,47 @@ Everything runs **on your laptop**. The targets are deployed Databricks DEV serv
 | Tool | Tested version | Check | Install (if missing) |
 |---|---|---|---|
 | Windows 10/11 with PowerShell | - | - | - |
-| Python | 3.12 | `py -3.12 --version` | `uv` installs it for you (next row), or get it from python.org |
-| uv (Python package manager, recommended) | 0.11 | `uv --version` | `winget install astral-sh.uv` |
+| Git | any | `git --version` | `winget install Git.Git` |
+| uv (Python package manager) | 0.11 | `uv --version` | `winget install astral-sh.uv` |
+| Python | 3.12 | `py -3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
 | Node.js LTS and npm | v24.17 / 11.13 | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
 | Databricks CLI | v1.4.0 | `databricks --version` | `winget install Databricks.DatabricksCLI` |
-| Git (only if the code is shared through a repository) | any | `git --version` | `winget install Git.Git` |
 
-Open a **new** PowerShell window after installing anything, so `PATH` is refreshed.
+After installing anything, **restart VS Code** (or open a new PowerShell window outside
+VS Code) so the updated `PATH` is picked up. If `winget` is blocked on your laptop,
+install the same tools from your company software portal.
 
 ### Access
 
 | You need | Used for | How to check |
 |---|---|---|
+| Read access to `https://github.com/IntelligentDataWorks/bic-load-testing` (private) | Cloning the code | The repository page opens when you are signed in to GitHub |
 | A login to the DEV Databricks workspace `https://adidas-dwhm-lh-wrk-gazelle-dev.cloud.databricks.com` | Every test | You can sign in in a browser |
 | Permission to use the IRIS DEV app `https://ds-insights-companion-ui-809065969263152.aws.databricksapps.com` | UI and BFF tests | The URL opens and shows **WELCOME TO IRIS** |
-| `CAN QUERY` on the serving endpoint `ds-insights-companion-agent-dev` | Serving-endpoint tests only | The serving smoke test in section 6 passes |
+| `CAN QUERY` on the serving endpoint `ds-insights-companion-agent-dev` | Serving-endpoint tests only | Smoke check 3 in section 6 passes |
 | Corporate network or VPN, if your workspace requires it | Reaching the workspace | The URLs above load |
 
-If the IRIS URL doesn't load for you, ask the IRIS app owner for access before you
-continue. Nothing else in this guide will work without it.
+If the GitHub repository or the IRIS URL doesn't open for you, ask the project owner for
+access before you continue. Nothing else in this guide works without it.
+
+### What you do *not* need
+
+* **No Databricks PAT.** Sign-in uses Databricks OAuth in the browser (section 5.1).
+* **No manual `~/.databrickscfg` editing.** The first sign-in creates the profile for you.
+* **No `.env` file.** The app keeps your token in memory. `config/.env.example` is
+  only for the command-line workflow.
 
 ---
 
 ## 2. Get the code
 
-**From a Git repository** (recommended):
-
 ```powershell
-git clone <repository-url> C:\Projects\bic-load-testing
+git clone https://github.com/IntelligentDataWorks/bic-load-testing.git C:\Projects\bic-load-testing
 Set-Location C:\Projects\bic-load-testing
 ```
 
-**From a zip:** unzip it to `C:\Projects\bic-load-testing` (any path works; the
-commands below assume this one).
-
-> **If you are the person sharing the code:** never include these folders and files.
-> They hold your live sessions, local settings or test output that may contain business data:
->
-> | Path | Why |
-> |---|---|
-> | `playwright/.auth/` | **Your live browser session cookies.** Anyone with this file can use IRIS as you. |
-> | `results/`, `playwright-report/`, `test-results/` | Test output; can contain answers, SQL and query results |
-> | `.venv/`, `node_modules/` | Machine-specific; each person rebuilds them in setup |
-> | `config/app-settings.json`, `.env` | Local settings |
->
-> `.gitignore` already excludes all of these, so sharing through Git is the safest
-> route. If you share a zip, delete them from the copy first.
+Any folder works; the commands below assume this one. If Git asks you to sign in, use
+the GitHub account that has access to the `IntelligentDataWorks` organisation.
 
 ---
 
@@ -109,7 +106,7 @@ npm install
 npx playwright install chromium
 ```
 
-No `uv`? Use plain Python instead:
+No `uv`? Use plain Python 3.12 instead:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -175,7 +172,7 @@ The two test tools sign in differently, and each credential expires on its own:
 | Credential | Used by | Lifetime | Where it lives |
 |---|---|---|---|
 | Databricks OAuth token | Locust (API and serving tests) | About 1 hour; refresh in the app | App memory only, never on disk |
-| Saved browser session | Playwright (UI tests) | About 24 hours | `playwright/.auth/bic-user.json` (never share it) |
+| Saved browser session | Playwright (UI tests) | About 24 hours | `playwright/.auth/bic-user.json` (gitignored; never share it) |
 
 ### 5.1 Databricks token (for Locust tests)
 
@@ -184,10 +181,20 @@ The two test tools sign in differently, and each credential expires on its own:
 1. Leave **Databricks CLI profile** empty and keep the DEV **Workspace host**.
 2. Press **Start browser sign-in** and complete the sign-in in the browser that opens.
    You only need this the first time on a machine, or when the CLI login expires.
+   The Databricks CLI saves an OAuth profile in `~/.databrickscfg` for you.
 3. Press **Get token**.
 
 **Expect:** a green **Authenticated** badge, an expiry countdown and a token *handle*.
 The token itself is never shown. Press **Refresh token** when it gets close to expiry.
+
+**Already have a `~/.databrickscfg`?** Leave the profile empty anyway. If you pick a
+profile, it must show auth type `databricks-cli`. A PAT profile can't mint an OAuth
+token (see Troubleshooting).
+
+**PAT fallback (optional).** Only if OAuth isn't available to you: the **PAT** tab
+accepts a PAT from a `~/.databrickscfg` profile or pasted into its password field. It
+works for serving-endpoint tests, but the deployed IRIS app rejects it. Type a PAT
+only into that field: never into a chat, a file or a commit.
 
 ### 5.2 Browser session (for Playwright tests)
 
@@ -318,10 +325,11 @@ in both at the same time overlap in time; that alone doesn't prove one caused th
 * **Files:** every run gets its own folder, `results/<run-id>/`, with `run.log`,
   `manifest.json` and the reports. Nothing is overwritten, and tokens are masked in the logs.
 
-**AI diagnosis** (optional): press **Diagnose this run with AI** on **Results**. The
-first time, set a chat-model serving endpoint you can query on the **AI diagnosis**
-page. Open **Exactly what will be sent** to check the payload: metrics only, with no
-tokens, headers, auth file or raw responses.
+**AI diagnosis** (optional): press **Diagnose this run with AI** on **Results**. It
+reuses the token you already hold. The default model endpoint is
+`databricks-claude-sonnet-4-5`; if you can't query it, set another chat-model endpoint
+on the **AI diagnosis** page. Open **Exactly what will be sent** to check the payload:
+metrics only, with no tokens, headers, auth file or raw responses.
 
 > Result files can contain real answers, SQL and query results. Keep them inside the team.
 
@@ -363,24 +371,43 @@ Closing points:
 
 ## 10. Set up with GitHub Copilot
 
-Open the repository folder in VS Code, open Copilot Chat in **agent mode**, and paste:
+### 10.1 Run the playbook
 
-```text
-Read docs/RUNBOOK.md and help me set up this repository on this Windows machine.
+1. Clone the repository (section 2) and open the folder in VS Code.
+2. Open Copilot Chat, switch to **Agent** mode, and type **`/bic-playbook`**.
 
-1. Check every prerequisite in section 1 and list what is missing with the
-   install command. Ask me before installing anything.
-2. Run the setup commands in section 3 from the repository root, then run the
-   verification commands and show me the output.
-3. Start the Streamlit app as described in section 4 (in a background terminal)
-   and tell me the URL.
-4. Stop when you reach section 5: the sign-in steps need me in the browser.
+The playbook is [.github/prompts/bic-playbook.prompt.md](../.github/prompts/bic-playbook.prompt.md).
+Copilot also loads the repository rules in
+[.github/copilot-instructions.md](../.github/copilot-instructions.md) automatically.
+Together they make Copilot:
 
-Rules: use PowerShell. Never open, print or copy playwright/.auth/bic-user.json,
-any token, or the contents of results/. Do not run any load test.
-```
+1. Check every prerequisite in section 1 and ask before installing anything.
+2. Run the setup and verification in section 3.
+3. Start the app (section 4) and give you the URL.
+4. Walk you through sign-in (section 5). This part needs you in the browser.
+5. Walk you through the smoke checks (section 6) and explain the results.
 
-Useful follow-up questions for Copilot:
+It never starts a load test above 1 user, and never touches production, unless you
+ask it to.
+
+### 10.2 What Copilot will ask you
+
+Copilot asks for these only when a step needs them. Have the answers ready:
+
+| Copilot asks | When | Your answer |
+|---|---|---|
+| "May I install `<tool>`?" | A prerequisite is missing | Yes or no. Restart VS Code after installs. |
+| "Can you open the DEV workspace and the IRIS URL in your browser?" | Before setup | If not, request access first (section 1) |
+| "Complete the Databricks sign-in in the browser, then press **Get token**" | Section 5.1 | Sign in with your work account. No PAT is needed. |
+| "Do you already have a `~/.databrickscfg` profile for the DEV workspace?" | Only if **Get token** fails | Say which auth type it shows. Copilot will not open the file. |
+| "Capture the browser session" | Section 5.2 | Do it in the app, then confirm **Looks usable** |
+| "What is your Databricks login email?" | Smoke check 3 and other serving tests | Your work email. It goes into `BIC_TEST_USER_ID`. |
+| "Confirm more than 5 users / this budget" | Any stress run | Confirm, and tell the app owner first (section 11) |
+
+Copilot must never ask you to paste a token or PAT into the chat. If it does, refuse
+and use the app's **Authentication** page instead.
+
+Useful follow-up questions:
 
 * "Using docs/RUNBOOK.md section 7, how do I test 10 concurrent sessions?"
 * "My smoke test fails with 401. What does docs/RUNBOOK.md say to do?"
@@ -398,7 +425,14 @@ Useful follow-up questions for Copilot:
   tell the app owner before any run with more than a few users.
 * **Stopping a run** (sidebar **Stop run**, or **Stop this run** on Live logs) stops the
   client. Requests the server already accepted may still finish.
-* **Never share** `playwright/.auth/bic-user.json`, a token, or result files outside the team.
+* **Never commit or share** these. `.gitignore` already excludes them; keep it that way:
+
+  | Path | Why |
+  |---|---|
+  | `playwright/.auth/` | **Your live browser session cookies.** Anyone with this file can use IRIS as you. |
+  | `results/`, `playwright-report/`, `test-results/` | Test output; can contain answers, SQL and query results |
+  | `config/app-settings.json`, `.env`, `config/.env` | Local settings |
+  | Any token or PAT | Grants access as you |
 
 ---
 
@@ -406,20 +440,27 @@ Useful follow-up questions for Copilot:
 
 | Problem | Fix |
 |---|---|
+| `git clone` says `Repository not found` | Your GitHub account has no access, or Git used a different saved account. Ask the project owner for access, then sign in with the right account. |
+| `uv`, `node`, `databricks` or `git` not found right after installing | Restart VS Code (or open a new PowerShell window) so `PATH` refreshes. |
+| `npm install` or `npx playwright install chromium` fails with a network error | A corporate proxy blocks downloads. Ask IT for the proxy address and set `$env:HTTPS_PROXY` in that window, or connect to the VPN. |
 | `401` on a deployed target | Token missing or expired. **Authentication** → **Get token** (or **Refresh token**), then re-run. After a Streamlit restart, you always need a new token. |
 | **Run test** says `requires BIC_AUTH_TOKEN but no token is held` | Same as above: get a token first. |
 | `databricks OAuth is not configured for this host` | A PAT profile was selected. Clear **Databricks CLI profile**, keep the workspace host, press **Start browser sign-in**, then **Get token**. |
+| AI diagnosis says `No token held` | Get a token on **Authentication** (OAuth is enough; no PAT needed), then retry. |
 | `403` | Your identity lacks permission on the app or endpoint. Ask the owner; it's not a load issue. |
 | Playwright lands on a Databricks login page, or **Run test** says `Saved Playwright session for the app expired` | **Authentication** → **Browser session** → **Capture browser session**. |
 | The browser session never shows **Looks usable** | Close **both** the browser and the Playwright Inspector after IRIS loads, then reload the page. |
 | `RuntimeError: BIC_TEST_USER_ID must be set` | Serving tests need your Databricks login email in `BIC_TEST_USER_ID`. |
 | Locust reports 0 requests | A required setting was empty and the scenario stopped at startup. Check the `RuntimeError` in **Live logs** or `results/<run-id>/run.log`. |
+| A run shows `cancelled` immediately | Something interrupted the process. Check `results/<run-id>/run.log`. |
 | `node` / `npx` not found in preflight | Install Node.js, then restart Streamlit. Toolchain checks are cached for 10 minutes. |
 | `Chromium` missing | `npx playwright install chromium`, then **Rescan repository** on the Dashboard. |
 | A new `.conf` profile doesn't appear | **Dashboard** → **Rescan repository**. |
 | "A run is already active" | Only one run at a time. Stop it from the sidebar or **Live logs**. |
 | `streamlit.exe` / `locust.exe` not found | The virtual environment is missing. Repeat section 3. |
 | The Playwright HTML report won't embed | It's a folder. Use **Launch playwright show-report** or download the zip. |
+
+Command-line problems are covered in [cli-reference.md section 12](cli-reference.md#12-troubleshooting).
 
 ---
 
@@ -430,4 +471,4 @@ Useful follow-up questions for Copilot:
 | [README.md](../README.md) | See the project layout, every Locust profile and every environment variable |
 | [streamlit-control-centre.md](streamlit-control-centre.md) | Understand how the app works inside: architecture, discovery, secret handling, adding profiles and scenarios |
 | [cli-reference.md](cli-reference.md) | Run Locust and Playwright from PowerShell without the app, plan a stress escalation, or dig into result interpretation |
-| [playwright-setup-and-demo.md](playwright-setup-and-demo.md) | Record a new Playwright journey with Codegen |
+| [playwright-recording.md](playwright-recording.md) | Record a new Playwright journey with Codegen |

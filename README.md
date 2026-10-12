@@ -4,31 +4,21 @@ Locust load/stress tests for the DS Insights Companion FastAPI BFF (modeled dire
 from [openapi.json](openapi.json)), Playwright UI tests against the deployed React
 app, and a local Streamlit control centre that runs and reviews all of them.
 
-> **New here? Start with [docs/RUNBOOK.md](docs/RUNBOOK.md).** It lists every
-> prerequisite, the one-time setup, how to sign in, how to test user sessions from the
-> Streamlit app, a 15-minute demo script, and a ready-to-paste GitHub Copilot setup prompt.
+> **New here? Start with [docs/RUNBOOK.md](docs/RUNBOOK.md).** It covers prerequisites,
+> setup, sign-in, the first smoke checks, session tests and a demo script.
+> Using GitHub Copilot? Open the folder in VS Code and type **`/bic-playbook`** in
+> Copilot Chat (Agent mode). It runs the setup for you and asks for anything missing.
 
-## Streamlit control centre (recommended entry point)
+## Documentation
 
-```powershell
-uv venv --python 3.12
-uv pip install -r requirements.txt
-npm install
-npx playwright install chromium
-.venv\Scripts\streamlit.exe run streamlit_app.py
-```
-
-Everything below can also be done from the UI: profile selection with safe
-per-run overrides, Databricks OAuth U2M sign-in, preflight checks, live logs, a
-safe stop, parsed Locust and Playwright results, report opening/downloading, and
-an LLM diagnosis of a completed run.
-
-- [docs/RUNBOOK.md](docs/RUNBOOK.md) -- start here: prerequisites, setup, user-session testing, demo script.
-- [docs/streamlit-control-centre.md](docs/streamlit-control-centre.md) -- architecture, auth, discovery, workflows, secret handling, troubleshooting, limitations.
-- [docs/cli-reference.md](docs/cli-reference.md) -- every test run from PowerShell without the app, plus stress escalation.
-- [docs/playwright-setup-and-demo.md](docs/playwright-setup-and-demo.md) -- the underlying Playwright commands and recording new journeys.
-
-The sections below document the direct CLI workflow, which still works unchanged.
+| Doc | Use it to |
+|---|---|
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | **Start here.** Set up, start the app, sign in, run tests, read results, troubleshoot |
+| [docs/streamlit-control-centre.md](docs/streamlit-control-centre.md) | Understand the app's internals: architecture, auth, discovery, secret handling, extending it |
+| [docs/cli-reference.md](docs/cli-reference.md) | Run every test from PowerShell without the app, including local no-auth runs and stress escalation |
+| [docs/playwright-recording.md](docs/playwright-recording.md) | Record a new Playwright journey with Codegen |
+| [.github/copilot-instructions.md](.github/copilot-instructions.md) | Rules Copilot follows in this repository |
+| [reports/](reports/) | Results of past test campaigns |
 
 ## Project layout
 
@@ -39,6 +29,7 @@ ui_components.py       shared Streamlit fragments
 app_pages/             one file per page (dashboard, configure, run, results, ...)
 control_centre/        all backend logic, importable without Streamlit
 tools/render_check.py  headless render check for every page
+app.yaml               Databricks Apps entry point for the control centre
 scenarios/
   auth.py               shared TokenAuthHttpUser base (reads BIC_AUTH_TOKEN, optional)
   basic_scenario.py      BicApiUser: health/healthz/me/data-sources/sessions + chat flow
@@ -49,122 +40,63 @@ scenarios/
   serving_endpoint_smoke.py  one direct, non-streaming serving-endpoint invocation
   serving_endpoint_load.py   sustained invocations of the same serving endpoint
 config/
-  locust.conf                 local, no-auth defaults (mirrors root locust.conf)
-  locust.local-smoke.conf     1 user, /api/healthz only, against a local BFF
-  locust.local-stream.conf    1 user, /api/chat/stream, against a local BFF
-  locust.deployed-smoke.conf  1 user, /api/healthz only, against the deployed app
-  locust.deployed-stream.conf 1 user, /api/chat/stream, against the deployed app
-  locust.deployed-stress.conf full load test, against the deployed app
-  locust.deployed-approved.conf approved-question chat load (set BIC_WORKLOAD_IDS for the mix)
-  locust.serving-smoke.conf   1 direct serving-endpoint invocation
-  locust.serving-stress.conf  sustained serving-endpoint load
-  locust.prod-serving-smoke.conf 1 invocation of the PROD agent endpoint (gate)
-  locust.prod-serving-load.conf  10 users on the PROD agent endpoint, data/prod_questions.txt
-  .env.example                template for BIC_AUTH_TOKEN / BIC_ENABLE_FULL_FLOW
-  app-settings.json           control-centre guardrails/thresholds (local, no secrets)
-tests/                        Playwright specs (see docs/playwright-setup-and-demo.md)
-tests/python/                 pytest unit tests for chat_outcome.py (python -m pytest tests/python -q)
+  locust.*.conf               Locust profiles (see the table below)
+  .env.example                template for the command-line workflow only
+  app-settings.json           control-centre guardrails/thresholds (created locally, gitignored)
+tests/                        Playwright specs
+tests/python/                 pytest unit tests for chat_outcome.py
 playwright.config.ts          Playwright config; BIC_* env vars override its defaults
 scripts/
-  get-databricks-token.ps1    mints an OAuth U2M token into $env:BIC_AUTH_TOKEN
+  get-databricks-token.ps1    mints an OAuth U2M token into $env:BIC_AUTH_TOKEN (CLI workflow)
 data/
   sample_questions.txt        chat questions used by basic_scenario.py
   approved_questions.txt      43 approved questions with IDs and domains (orchestrator.dev.yaml)
   prod_questions.txt          37 routing examples from orchestrator.prod.yaml (prod serving load)
-results/                      generated CSV/HTML reports and results/<run-id>/ (gitignored)
-locust.conf                   root copy of the local, no-auth default config
+docs/                         runbook and reference docs
+reports/                      test campaign reports
+.github/                      Copilot instructions and the /bic-playbook prompt
+results/                      generated reports, one results/<run-id>/ per run (gitignored)
+locust.conf                   root copy of config/locust.conf (local, no auth)
 ```
 
-## Setup
+## Locust profiles
 
-```powershell
-uv venv --python 3.12
-uv pip install -r requirements.txt
-```
+The control centre lists every profile on **Configure test**. From PowerShell, run one
+with `.venv\Scripts\locust.exe --config <file>` (see [docs/cli-reference.md](docs/cli-reference.md)).
 
-## 1. Local, no-auth run against FastAPI directly
+| Profile (`config/locust.<name>.conf`) | Scenario | Target | Needs | Users | Purpose |
+|---|---|---|---|---:|---|
+| `local` (also root `locust.conf`) | `basic_scenario.py` | `localhost:8000` | - | 1 | local BFF, no auth |
+| `local-smoke` | `smoke_healthz.py` | `localhost:8000` | - | 1 | local health gate |
+| `local-stream` | `stream_scenario.py` | `localhost:8000` | - | 1 | local SSE timing |
+| `deployed-smoke` | `smoke_healthz.py` | DEV app | token | 1 | gate before any deployed load |
+| `deployed-stream` | `stream_scenario.py` | DEV app | token | 1 | deployed SSE timing |
+| `deployed-stress` | `basic_scenario.py` | DEV app | token | 20 | multi-turn load/stress |
+| `deployed-approved` | `approved_question_scenario.py` | DEV app | token; optional `BIC_WORKLOAD_IDS` | 1 | approved-question chats; new session per journey plus history isolation check |
+| `serving-smoke` | `serving_endpoint_smoke.py` | DEV workspace | token + `BIC_TEST_USER_ID` | 1 | one direct serving-endpoint invocation |
+| `serving-stress` | `serving_endpoint_load.py` | DEV workspace | token + `BIC_TEST_USER_ID` | 5 | sustained serving-endpoint load |
+| `prod-serving-smoke` | `serving_endpoint_smoke.py` | **PROD** workspace | PROD token + `BIC_TEST_USER_ID` + `BIC_SERVING_ENDPOINT_PATH` | 1 | PROD agent gate (**approval required**) |
+| `prod-serving-load` | `serving_endpoint_load.py` | **PROD** workspace | same + `BIC_QUESTIONS_FILE` | 10 | PROD agent load, 10 min (**approval required**) |
 
-Uses the root `locust.conf` (host `http://localhost:8000`, no `BIC_AUTH_TOKEN` needed).
-Start your local FastAPI BFF first, then:
+DEV app: `https://ds-insights-companion-ui-809065969263152.aws.databricksapps.com`.
+DEV workspace: `https://adidas-dwhm-lh-wrk-gazelle-dev.cloud.databricks.com`.
+PROD workspace: `https://adidas-lh-wrk-gazelle.cloud.databricks.com`. For PROD, set
+`BIC_SERVING_ENDPOINT_PATH=/serving-endpoints/ds-insights-companion-agent/invocations`
+and use a token for the PROD workspace.
 
-```powershell
-.venv\Scripts\locust.exe
-```
+"Token" means a Databricks OAuth token: the app gets one on **Authentication**, and
+the command line uses `scripts/get-databricks-token.ps1`.
 
-This runs `BicApiUser` from [scenarios/basic_scenario.py](scenarios/basic_scenario.py): health, healthz,
-me, data-sources, sessions, then (if `BIC_ENABLE_FULL_FLOW` isn't set to `false`) create/obtain
-session, chat, session-chat, visualization.
+## Environment variables
 
-## 2. Health smoke check (gate before any deployed load test)
+The control centre sets these per run from the **Scenario environment** form. On the
+command line, set them in the PowerShell window that runs Locust
+(template: [config/.env.example](config/.env.example)).
 
-Single user, single endpoint (`/api/healthz`). Run this first and confirm `0 failures`
-before ever running the stress config.
-
-```powershell
-# against local FastAPI
-.venv\Scripts\locust.exe -f scenarios/smoke_healthz.py --headless -u 1 -r 1 -t 10s --host http://localhost:8000
-
-# against the deployed app (after loading BIC_AUTH_TOKEN, see step 4)
-.venv\Scripts\locust.exe --config config/locust.deployed-smoke.conf
-```
-
-## 3. Stream scenario (`/api/chat/stream`)
-
-Run separately from the basic scenario -- SSE timing isn't comparable to normal
-request/response latency (see the docstring in the file).
-
-```powershell
-.venv\Scripts\locust.exe -f scenarios/stream_scenario.py --headless -u 1 -r 1 -t 10s --host http://localhost:8000
-```
-
-## 4. Connecting to Databricks (OAuth U2M) for the deployed app
-
-The deployed app enforces auth, so requests need a bearer token. Do **not** use a
-static PAT from `.databrickscfg` -- mint a short-lived OAuth U2M token instead:
-
-```powershell
-.\scripts\get-databricks-token.ps1 -WorkspaceHost https://adidas-dwhm-lh-wrk-gazelle-dev.cloud.databricks.com
-```
-
-This runs `databricks auth login --host <workspace>` (opens a browser once to sign in,
-caches a refresh token via the Databricks CLI) and `databricks auth token --host <workspace>`
-(returns a fresh access token), then exports it as `$env:BIC_AUTH_TOKEN` for the
-**current PowerShell session only** -- it is never written to a file in this repo.
-
-Then, in that same session:
-
-```powershell
-# 1. Gate: must show 0 failures before continuing
-.venv\Scripts\locust.exe --config config/locust.deployed-smoke.conf
-
-# 2. Only after the smoke check passes
-.venv\Scripts\locust.exe --config config/locust.deployed-stress.conf
-```
-
-If the token expires during a long run, re-run `get-databricks-token.ps1` and restart
-the test -- `databricks auth token` refreshes silently as long as the cached login is
-still valid.
-
-## Config reference
-
-| File | Host | Auth | Users | Purpose |
-|---|---|---|---|---|
-| `locust.conf` / `config/locust.conf` | `localhost:8000` | none | 1 | local dev, no-auth |
-| `config/locust.deployed-smoke.conf` | deployed app | `BIC_AUTH_TOKEN` | 1 | gate before stress |
-| `config/locust.deployed-stress.conf` | deployed app | `BIC_AUTH_TOKEN` | 20 | actual load/stress run |
-| `config/locust.serving-smoke.conf` | Databricks workspace | `BIC_AUTH_TOKEN` + `BIC_TEST_USER_ID` | 1 | single serving-endpoint invocation |
-| `config/locust.serving-stress.conf` | Databricks workspace | `BIC_AUTH_TOKEN` + `BIC_TEST_USER_ID` | 5 | sustained serving-endpoint load |
-| `config/locust.prod-serving-smoke.conf` | PROD workspace `adidas-lh-wrk-gazelle` | `BIC_AUTH_TOKEN` + `BIC_TEST_USER_ID` + `BIC_SERVING_ENDPOINT_PATH` | 1 | PROD serving-endpoint gate |
-| `config/locust.prod-serving-load.conf` | PROD workspace `adidas-lh-wrk-gazelle` | same + `BIC_QUESTIONS_FILE` | 10 | PROD serving-endpoint load, 10 min |
-| `config/locust.local-smoke.conf` | `localhost:8000` | none | 1 | local health gate |
-| `config/locust.local-stream.conf` | `localhost:8000` | none | 1 | local SSE timing |
-| `config/locust.deployed-stream.conf` | deployed app | `BIC_AUTH_TOKEN` | 1 | deployed SSE timing |
-
-Environment variables (see [config/.env.example](config/.env.example)):
-
-- `BIC_AUTH_TOKEN` -- bearer token forwarded as `Authorization: Bearer <token>`. Leave unset for local runs.
+- `BIC_AUTH_TOKEN` -- bearer token forwarded as `Authorization: Bearer <token>`. Leave unset for local runs. Never store a real value in a file.
 - `BIC_ENABLE_FULL_FLOW` -- defaults to `true`; set to `false` to skip create-session/chat/history/visualization and only run the read-only checks.
-- `BIC_TEST_USER_ID` -- required by the serving-endpoint scenarios; the caller's Databricks user id/email.
+- `BIC_TEST_USER_ID` -- required by the serving-endpoint scenarios; your Databricks login email (the same identity as the token).
+- `BIC_WORKLOAD_IDS` -- optional, `approved_question_scenario.py` only; comma-separated question IDs such as `Q01,Q02`. Empty cycles through all questions.
 - `BIC_TEST_QUESTION` -- optional; the user turn sent by the serving-endpoint scenarios (default `Hello`).
 - `BIC_SERVING_ENDPOINT_PATH` -- optional; overrides `/serving-endpoints/ds-insights-companion-agent-dev/invocations`.
 - `BIC_REQUEST_TIMEOUT_SECONDS` -- optional; serving-endpoint request timeout (default `180`).
@@ -172,36 +104,15 @@ Environment variables (see [config/.env.example](config/.env.example)):
 - `BIC_QUESTIONS_FILE` -- optional, `serving_endpoint_load.py` only; an `id|domain|kind|question` file (e.g. `data/prod_questions.txt`). Questions are cycled across all users and each request is named `<endpoint> [<domain>]`.
 - `BIC_RESULTS_JSONL` -- optional, `serving_endpoint_load.py` only; writes one sanitized line per invocation (question id, expected vs routed domain, orchestrator action, status, latency).
 
-For the PROD agent endpoint set `BIC_SERVING_ENDPOINT_PATH=/serving-endpoints/ds-insights-companion-agent/invocations`
-and a token for `https://adidas-lh-wrk-gazelle.cloud.databricks.com`, then run the prod smoke config before the prod load config.
-
 Playwright reads these too, all optional, each falling back to the literal already in
 [playwright.config.ts](playwright.config.ts): `BIC_BASE_URL`, `BIC_STORAGE_STATE`,
 `BIC_TRACE`, `BIC_SCREENSHOT`, `BIC_VIDEO`.
 
-Reports (CSV + HTML) are written to `results/` by every config above. Runs started
-from the Streamlit app write to `results/<run-id>/` instead, so they never overwrite
-each other.
+Runs started from the control centre write to `results/<run-id>/`, so they never
+overwrite each other. Profiles run from the command line write to the `csv`/`html`
+paths in the `.conf` file unless you override them.
 
-## Troubleshooting
+## Developing
 
-### `401` from the serving endpoint or the deployed app
-
-Almost always means `BIC_AUTH_TOKEN` is missing or expired **in the shell that's running
-locust** -- an env var set in one PowerShell window does not carry over to another window.
-Set the token, then run locust, in the same window:
-
-```powershell
-.\scripts\get-databricks-token.ps1 -WorkspaceHost https://adidas-dwhm-lh-wrk-gazelle-dev.cloud.databricks.com
-locust --config config/locust.serving-smoke.conf
-```
-
-If you can't tell whether the token is set, check its presence without printing it:
-
-```powershell
-if ($env:BIC_AUTH_TOKEN) { "set (length=$($env:BIC_AUTH_TOKEN.Length))" } else { "NOT set" }
-```
-
-The Streamlit control centre does not have this problem: it runs `databricks auth token`
-itself, keeps the result in session memory, and injects it into each test subprocess's
-own environment. Use **Authentication -> Get token** there instead.
+Adding profiles, scenarios and Playwright specs, and the checks to run after a change:
+[docs/streamlit-control-centre.md](docs/streamlit-control-centre.md) sections 13 to 17.

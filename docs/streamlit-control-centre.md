@@ -5,42 +5,22 @@ Playwright spec in this repository. Everything previously done from PowerShell -
 minting a Databricks OAuth token, running a profile, opening a report -- is
 available in the UI.
 
-Related: [RUNBOOK.md](RUNBOOK.md) (setup and demo, start here),
-[README.md](../README.md), [cli-reference.md](cli-reference.md),
-[playwright-setup-and-demo.md](playwright-setup-and-demo.md).
+This document explains how the app works inside. To install, start and use it,
+follow [RUNBOOK.md](RUNBOOK.md).
+
+Related: [README.md](../README.md) (profiles and environment variables),
+[cli-reference.md](cli-reference.md), [playwright-recording.md](playwright-recording.md).
 
 ---
 
-## 1. Installation
+## 1. Installing and starting
 
-Full prerequisites (software versions and Databricks access) are in
-[RUNBOOK.md section 1](RUNBOOK.md#1-prerequisites).
-
-```powershell
-cd C:\Projects\bic-load-testing
-uv venv --python 3.12
-uv pip install -r requirements.txt
-
-# Node side (already present if Playwright has been set up before)
-npm install
-npx playwright install chromium
-```
-
-Optional but recommended: the [Databricks CLI](https://docs.databricks.com/dev-tools/cli/)
-on `PATH`, for OAuth U2M sign-in and AI diagnosis.
-
-## 2. Starting the app
-
-```powershell
-.venv\Scripts\streamlit.exe run streamlit_app.py
-```
-
-It opens on <http://localhost:8501> and binds to `127.0.0.1` only
-(see [.streamlit/config.toml](../.streamlit/config.toml)).
-
+Prerequisites, setup and the start command are in [RUNBOOK.md sections 1 to 4](RUNBOOK.md#1-prerequisites).
+The app binds to `127.0.0.1:8501` only (see [.streamlit/config.toml](../.streamlit/config.toml)).
+[app.yaml](../app.yaml) overrides that binding to `0.0.0.0` for Databricks Apps.
 The app never starts a test on launch. Nothing runs until you press **Start run**.
 
-## 3. Architecture
+## 2. Architecture
 
 The Streamlit layer is thin. Every piece of real logic lives in `control_centre/`
 and is importable and testable without Streamlit.
@@ -94,7 +74,7 @@ Results page    -> locust_results / playwright_results -> metrics, reports
 Diagnosis page  -> sanitized summary -> Databricks serving endpoint -> manifest
 ```
 
-## 4. Test areas
+## 3. Test areas
 
 | Area | Tool | Included | Excluded |
 |---|---|---|---|
@@ -108,7 +88,7 @@ Locust answers *how much load can the API take*. Playwright answers *does the
 journey work*. Neither answers the other's question, which is why the combined
 run exists.
 
-## 5. Authentication
+## 4. Authentication
 
 ### Databricks CLI OAuth U2M (preferred)
 
@@ -152,7 +132,7 @@ always explicit.
 `playwright/.auth/bic-user.json` is checked for existence, modification time and
 usability (cookie count and expiry). Its contents are never shown. **Capture
 browser session** launches the same `npx playwright codegen --save-storage=...`
-flow documented in [playwright-setup-and-demo.md](playwright-setup-and-demo.md).
+flow documented in [RUNBOOK.md section 5.2](RUNBOOK.md#52-browser-session-for-playwright-tests).
 `playwright/.auth/` stays excluded from Git.
 
 ### No auth
@@ -160,7 +140,7 @@ flow documented in [playwright-setup-and-demo.md](playwright-setup-and-demo.md).
 For a local FastAPI BFF that does not enforce auth. Scenarios send no
 `Authorization` header when no token is held.
 
-## 6. How profiles are discovered
+## 5. How profiles are discovered
 
 `control_centre/discovery.py` scans:
 
@@ -171,21 +151,8 @@ Each file is parsed as configargparse `key = value` pairs. The leading comment
 block becomes the profile description, and a profile is classified as a
 serving-endpoint profile when its `locustfile` is one of the serving scenarios.
 
-Profiles present today:
-
-| Profile | Scenario | Host | Users | Purpose |
-|---|---|---|---|---|
-| `local (root locust.conf)` / `local` | `basic_scenario.py` | localhost:8000 | 1 | local, no auth |
-| `local-smoke` | `smoke_healthz.py` | localhost:8000 | 1 | local health gate |
-| `local-stream` | `stream_scenario.py` | localhost:8000 | 1 | local SSE timing |
-| `deployed-smoke` | `smoke_healthz.py` | deployed app | 1 | gate before stress |
-| `deployed-stream` | `stream_scenario.py` | deployed app | 1 | deployed SSE timing |
-| `deployed-stress` | `basic_scenario.py` | deployed app | 20 | load/stress |
-| `deployed-approved` | `approved_question_scenario.py` | deployed app | 1 | approved-question chat load; new session per journey plus history isolation check |
-| `serving-smoke` | `serving_endpoint_smoke.py` | workspace | 1 | one direct invocation |
-| `serving-stress` | `serving_endpoint_load.py` | workspace | 5 | sustained invocations |
-| `prod-serving-smoke` | `serving_endpoint_smoke.py` | **PROD** workspace | 1 | PROD agent gate (approval required) |
-| `prod-serving-load` | `serving_endpoint_load.py` | **PROD** workspace | 10 | PROD agent load (approval required) |
+The profiles present today, with scenario, target and required inputs, are listed in
+[README.md](../README.md#locust-profiles).
 
 The control centre passes every value as an explicit flag rather than `--config`,
 so profile keys the form does not expose (for example `stop-timeout = 330` in
@@ -199,14 +166,14 @@ Required and optional environment variables are read out of the scenario source
 (`_require_env("X")` and `os.getenv("X")`), so a new scenario's inputs appear in
 the form automatically.
 
-## 7. How Playwright tests are discovered
+## 6. How Playwright tests are discovered
 
 `tests/*.spec.ts` is scanned and each file's `test('...')` titles are extracted.
 A file that contains a `test.use({ storageState: ... })` block and a single test
 named `test` is flagged as a raw Codegen recording (that is
 `tests/bic-chat-recorded.spec.ts`), so it is not mistaken for a real check.
 
-## 8. Supported workflows
+## 7. Supported workflows
 
 Every workflow is: **Configure test -> Use this configuration -> Run test ->
 Start run**.
@@ -240,7 +207,7 @@ The Results page shows the load profile, the API metrics for that window, whethe
 the journey passed and how long it took, and flags overlap between API failures
 and UI failures as correlation rather than causation.
 
-## 9. Execution, results and reports
+## 8. Execution, results and reports
 
 * Each run gets `results/<run-id>/` with `run.log`, `manifest.json` and its
   report artefacts. Nothing is ever overwritten.
@@ -278,7 +245,7 @@ Runs started from the control centre use `--reporter=list,html,json` with
 `PLAYWRIGHT_JSON_OUTPUT_NAME` pointing into the run directory. The existing HTML
 report is preserved; JSON is added so results can be parsed instead of scraped.
 
-## 10. AI diagnosis
+## 9. AI diagnosis
 
 **Diagnose results** on a completed run sends a compact, sanitized summary to a
 configurable Databricks serving or AI Gateway endpoint and renders a structured
@@ -313,7 +280,7 @@ action and limitations. The result renders as a short executive summary with the
 technical detail in an expander, downloads as Markdown or JSON, and is attached
 to the run manifest.
 
-## 11. Secret handling
+## 10. Secret handling
 
 * Tokens live in Streamlit session memory and nowhere else -- never in a file,
   a manifest, a log or the URL.
@@ -328,7 +295,7 @@ to the run manifest.
 * Commands are argument arrays executed with `shell=False`. There is no free-form
   shell-command field anywhere in the app.
 
-## 12. Safety controls
+## 11. Safety controls
 
 * Defaults are one-user smoke profiles.
 * A run above the stress threshold (5 users by default) requires typing
@@ -340,24 +307,16 @@ to the run manifest.
   (`config/app-settings.json`, no secrets).
 * Nothing runs at startup.
 
-## 13. Troubleshooting
+## 12. Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| 401 from the deployed app or serving endpoint | Token missing or expired. Authentication -> **Get token**, then restart the run. |
-| Run test says `requires BIC_AUTH_TOKEN but no token is held` | Expected: no token in this session yet. Authentication -> **Get token**. The token lives in session memory only, so it is gone after a Streamlit restart. |
-| `databricks OAuth is not configured for this host` when minting | A **PAT** CLI profile was selected. Only profiles created by `databricks auth login` (auth_type `databricks-cli`) can mint an OAuth token. Clear the profile selection and pick the workspace host, or run step 1 first. The profile dropdown shows each profile's auth_type. |
-| Playwright times out waiting for `New Session`; screenshot shows Databricks **Log in / Continue with SSO** | The saved browser session's Databricks Apps proxy cookie (scoped to the app host) lasts about **24 hours**. Run test now blocks with `Saved Playwright session for the app expired at ...` instead of burning the full timeout. Authentication -> **Browser session** -> **Capture browser session**, sign in, wait for IRIS to load, close the browser and Inspector. |
-| AI diagnosis says `No token held` | Diagnosis reuses the session's token -- OAuth U2M **or** PAT. A PAT is not required: Authentication -> OAuth U2M -> **Get token** is enough. |
-| `node` / `npx` not found in preflight | Node.js is not on this server's `PATH`. Install it and restart Streamlit (toolchain probes cache for 10 minutes). |
-| Chromium missing | `npx playwright install chromium` |
-| Locust reports 0 requests | A required environment variable was empty and the scenario raised at startup; the run log shows the `RuntimeError`. |
-| Run shows `cancelled` immediately | Something interrupted the process tree -- check `results/<run-id>/run.log`. |
-| Playwright HTML report will not embed | It is a directory. Use **Launch playwright show-report** or download the zip. |
-| Stopping a run produced no HTML report | Should not happen: Locust runs through `control_centre/locust_launcher.py`, which converts the Windows stop signal into the graceful shutdown path. If it recurs, check the run log for a hard kill after the 20-second grace period. |
-| "A run is already active" | Only one run at a time. Stop it from the sidebar or Live logs. |
+User-facing problems and fixes are in [RUNBOOK.md section 12](RUNBOOK.md#12-troubleshooting).
 
-## 14. Adding a new Locust profile
+One internals note: stopping a Locust run should still write its HTML report, because
+Locust runs through `control_centre/locust_launcher.py`, which converts the Windows stop
+signal into Locust's graceful shutdown. If a stopped run has no report, check
+`results/<run-id>/run.log` for a hard kill after the 20-second grace period.
+
+## 13. Adding a new Locust profile
 
 1. Create `config/locust.<name>.conf`:
 
@@ -378,47 +337,20 @@ to the run manifest.
 Or configure a run in the UI and use **Save these Locust values as a new
 profile**, which writes the same file for you.
 
-## 15. Adding a new Locust scenario
+## 14. Adding a new Locust scenario
 
 Add `scenarios/<name>.py` subclassing `TokenAuthHttpUser` from
 `scenarios/auth.py`. Use `_require_env("X")` for variables the scenario cannot
 run without and `os.getenv("X", default)` for optional ones -- the Configure page
 builds its environment form from exactly those calls.
 
-## 16. Adding a new Playwright test
+## 15. Adding a new Playwright test
 
 Add `tests/<name>.spec.ts`. Use the configured `baseURL` and the global
 `storageState` instead of hard-coding either, so the control centre can retarget
 the spec.
 
-## 17. Changes made to existing tests
-
-Two deliberate, backwards-compatible changes were required for reliable
-orchestration and machine-readable reporting. With no `BIC_*` variables set,
-both behave exactly as before.
-
-1. **[playwright.config.ts](../playwright.config.ts)** -- `baseURL`,
-   `storageState`, `screenshot`, `trace` and `video` now read optional
-   environment variables (`BIC_BASE_URL`, `BIC_STORAGE_STATE`, `BIC_SCREENSHOT`,
-   `BIC_TRACE`, `BIC_VIDEO`) and fall back to the original literals. This is what
-   lets a run target a different host or capture different artefacts without
-   editing the file.
-
-2. **[scenarios/serving_endpoint_smoke.py](../scenarios/serving_endpoint_smoke.py)**
-   -- the endpoint path, request timeout and session-id prefix are now read from
-   `BIC_SERVING_ENDPOINT_PATH`, `BIC_REQUEST_TIMEOUT_SECONDS` and
-   `BIC_SESSION_ID_PREFIX`, defaulting to the original constants. Session ids are
-   still uniquely generated per invocation.
-
-Added (nothing existing changed):
-
-* `scenarios/serving_endpoint_load.py` -- sustained-load sibling of the serving
-  smoke test, same contract, no `self.stop()`.
-* `config/locust.serving-stress.conf`, `config/locust.deployed-stream.conf`,
-  `config/locust.local-stream.conf`, `config/locust.local-smoke.conf` -- profiles
-  for workflows the repository documented as one-off commands.
-
-## 18. Known limitations
+## 16. Known limitations
 
 * **Single identity.** Every Locust virtual user shares the one bearer token held
   in the session. This is concurrency under a single Databricks principal; it
@@ -443,7 +375,7 @@ Added (nothing existing changed):
   handler; the POSIX path (`SIGINT` to the process group) is implemented but is
   less exercised.
 
-## 19. Verifying a change to the app
+## 17. Verifying a change to the app
 
 ```powershell
 # every page renders headlessly through the real entry point
@@ -451,4 +383,8 @@ Added (nothing existing changed):
 
 # byte-compile everything
 .venv\Scripts\python.exe -m compileall -q control_centre app_pages tools
+
+# unit tests for scenarios/chat_outcome.py (pytest is not in requirements.txt)
+uv pip install pytest
+.venv\Scripts\python.exe -m pytest tests/python -q
 ```

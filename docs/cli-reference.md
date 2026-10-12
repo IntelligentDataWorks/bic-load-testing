@@ -3,41 +3,22 @@
 > **New to this repository?** Start with [RUNBOOK.md](RUNBOOK.md): prerequisites,
 > setup, and how to run everything from the Streamlit control centre. This document
 > is the detailed reference for running the same tests **without** the app, and for
-> planning a controlled stress escalation. (It was previously named
-> `CLI_TESTING_DEMO_RUNBOOK.md`.)
+> planning a controlled stress escalation.
 
 This reference shows how to run the repository's Locust and Playwright tests directly
-from Windows PowerShell, without the Streamlit control centre. It covers each test
-stage, what to look for in the results, and when to increase load or stop.
+from Windows PowerShell. It covers each test stage, what to look for in the results,
+and when to increase load or stop. Install the tools first with
+[RUNBOOK.md sections 1 to 3](RUNBOOK.md#1-prerequisites).
 
-Everything here was checked against the repository and against the tools installed
-in this workspace:
+The approved-question session test (`config/locust.deployed-approved.conf`) is
+documented in [RUNBOOK.md section 7](RUNBOOK.md#7-testing-user-sessions). From the
+command line it runs like any other profile:
+`.venv\Scripts\locust.exe --config config/locust.deployed-approved.conf` with the token
+loaded (step 1.4).
 
-| Tool | Version found locally | How it was checked |
-|---|---|---|
-| Python (repo `.venv`) | 3.12.13 | `.venv\Scripts\python.exe --version` |
-| Locust | 2.46.6 | `.venv\Scripts\locust.exe --version`, `--help` |
-| Node.js / npm | v24.17.0 / 11.13.0 | `node --version`, `npm --version` |
-| Playwright (`@playwright/test`) | 1.63.0 | `npx playwright --version`, `test --help`, `show-report --help`, `codegen --help`, `test --list` |
-| Databricks CLI | v1.4.0 | `databricks --version`, `auth token --help`, `apps logs --help`, `serving-endpoints --help` |
-
-Every Locust config referenced below loads its user class
-(`locust --config <file> -l`). None of the commands in this document were run
-against the deployed App or the serving endpoint while it was being written.
-**No live results are included. Every results table is blank on purpose.**
-
-Related documents: [RUNBOOK.md](RUNBOOK.md) (setup and the Streamlit version of the demo),
-[README.md](../README.md),
-[playwright-setup-and-demo.md](playwright-setup-and-demo.md),
-[streamlit-control-centre.md](streamlit-control-centre.md).
-
-> **Since this was written:** `config/locust.deployed-approved.conf`
-> (`scenarios/approved_question_scenario.py`) was added. It is the recommended
-> session test: a new session per journey, a business verdict for every answer, and
-> a session-history isolation check. See [RUNBOOK.md section 7](RUNBOOK.md#7-testing-user-sessions).
-> Gap G1 below is now fixed for `basic_scenario.py`, which classifies each chat turn
-> with `scenarios/chat_outcome.py`, so `action: "error"` counts as a failure.
-> `stream_scenario.py` still has the gap.
+Related documents: [README.md](../README.md) (profiles and environment variables),
+[streamlit-control-centre.md](streamlit-control-centre.md),
+[playwright-recording.md](playwright-recording.md).
 
 ---
 
@@ -57,6 +38,7 @@ Related documents: [RUNBOOK.md](RUNBOOK.md) (setup and the Streamlit version of 
 11. [Command quick reference](#11-command-quick-reference)
 12. [Troubleshooting](#12-troubleshooting)
 13. [Code gaps that affect this runbook](#13-code-gaps-that-affect-this-runbook)
+14. [Local BFF runs without auth](#14-local-bff-runs-without-auth)
 
 ---
 
@@ -70,7 +52,8 @@ Related documents: [RUNBOOK.md](RUNBOOK.md) (setup and the Streamlit version of 
 
 ## Conventions used in every step
 
-* **Working directory:** `C:\Projects\bic-load-testing` for every command.
+* **Working directory:** the repository root for every command. The examples use
+  `C:\Projects\bic-load-testing`; replace it if you cloned elsewhere.
 * **Terminals:**
   * **Terminal A** runs Locust and holds the API token.
   * **Terminal B** runs Playwright.
@@ -105,11 +88,12 @@ Related documents: [RUNBOOK.md](RUNBOOK.md) (setup and the Streamlit version of 
 | `config/locust.deployed-smoke.conf` | `scenarios/smoke_healthz.py` / `HealthzSmokeUser` | App `/api/healthz` | Continuous: one request per second for 10 s | Health, including auth | HTTP 200 only. The `ok` field in the body is **not** checked. |
 | `config/locust.deployed-stress.conf` | `scenarios/basic_scenario.py` / `BicApiUser` | App BFF | Continuous. 20 users, 2 min by default. | **Business workflow** | Status 200 plus the response shape defined in `openapi.json` (see 0.2) |
 | `config/locust.deployed-stream.conf` | `scenarios/stream_scenario.py` / `BicApiStreamUser` | App `/api/chat/stream` | Continuous. 1 user, 60 s. | Business (streaming) | Status 200, the stream ends with a terminal `result` event, and there is no in-band `error` event |
+| `config/locust.deployed-approved.conf` | `scenarios/approved_question_scenario.py` / `ApprovedQuestionUser` | App BFF | Continuous. 1 user, 3 min by default. | **Business workflow**, one new session per journey | `/api/chat` counts only completed answers (`scenarios/chat_outcome.py`); clarifications get their own row. `/api/session-chat` must hold exactly this one question. |
 | `config/locust.serving-smoke.conf` | `scenarios/serving_endpoint_smoke.py` / `ServingEndpointSmokeUser` | Serving endpoint | **Smoke only.** Sends exactly one request, then the user stops. | Business contract (the default question is `Hello`) | Status 200, a non-empty `output`, and no `error` item |
 | `config/locust.serving-stress.conf` | `scenarios/serving_endpoint_load.py` / `ServingEndpointLoadUser` | Serving endpoint | Continuous. 5 users, 3 min by default. | Business contract | Same as the serving smoke test |
 
 The local configs (`config/locust.conf`, `locust.local-*.conf`, root `locust.conf`)
-target `http://localhost:8000` and are not used in this runbook.
+target `http://localhost:8000`. See [section 14](#14-local-bff-runs-without-auth).
 
 ### 0.2 The BFF business workflow in `basic_scenario.py`
 
@@ -1282,14 +1266,11 @@ section 6.3 are suggestions. Record observations and decisions, not an unqualifi
 
 ## 8. Limits and presentation notes
 
-Say these out loud when presenting:
+The general limitations (one identity, local runner, small samples, correlation is
+not causation) are listed in
+[streamlit-control-centre.md, Known limitations](streamlit-control-centre.md#16-known-limitations).
+They apply to command-line runs too. Say them out loud when presenting, plus these:
 
-* **Local runner, deployed target.** Locust and Playwright run on this laptop but
-  target the deployed dev App and serving endpoint. Every figure includes the network
-  path from the laptop, including VPN. Compare runs made from the same machine only.
-* **One identity.** Every Locust user shares one OAuth token, and every browser
-  context shares one saved session. Several virtual users are several **sessions**
-  under **one real identity**.
 * **Not validated:** permissions across users, several on-behalf-of (OBO) identities,
   or limits that apply per user. `/api/healthz` reports `auth_mode` (`obo` or
   `pat_fallback`), but only for this one caller.
@@ -1422,12 +1403,12 @@ Remove-Item Env:BIC_TEST_QUESTION -ErrorAction SilentlyContinue
 ## 13. Code gaps that affect this runbook
 
 None of these gaps prevents the documented sequence from running. They limit what the
-results can show. Each fix below is the smallest change that would close the gap;
-none has been made.
+results can show. Each fix below is the smallest change that would close the gap.
+Only G1 has been fixed, and only for `basic_scenario.py`.
 
 | ID | Gap | Effect | Smallest change |
 |---|---|---|---|
-| **G1** | `basic_scenario.py` and `stream_scenario.py` accept `action == "error"` as a valid `ChatResult`. The allowed set includes `"error"`, and the stream check only looks at the required keys. | A chat turn that ends in an agent or orchestration error still shows as **passed** in Locust. BFF business failure rates can be understated. | In `_is_valid_chat_result` and in the stream success check, treat `action == "error"` as a failure. Optionally, also require a non-empty `message` or `insighter` for `summarized` and `return_response`. |
+| **G1** (fixed in `basic_scenario.py`; open in `stream_scenario.py`) | `basic_scenario.py` and `stream_scenario.py` accepted `action == "error"` as a valid `ChatResult`. The allowed set includes `"error"`, and the stream check only looks at the required keys. | A chat turn that ends in an agent or orchestration error still shows as **passed** in Locust. BFF business failure rates can be understated. | In `_is_valid_chat_result` and in the stream success check, treat `action == "error"` as a failure. Optionally, also require a non-empty `message` or `insighter` for `summarized` and `return_response`. |
 | **G2** | The BFF scenarios pass no `timeout=` to `/api/chat`, `/api/chat/stream` or the other calls, and Locust's `HttpSession` has no default timeout. | A hung request is never recorded as a timeout. Users can block until `--stop-timeout` kills them, and those requests may not be recorded at all. | Add `timeout=` to the BFF calls, for example by reusing the `BIC_REQUEST_TIMEOUT_SECONDS` pattern from the serving scenarios. |
 | **G3** | `smoke_healthz.py` checks only for HTTP 200. `HealthzResponse.ok` is not checked. | A 200 response with `ok: false` passes the gate. | Parse the JSON and fail when `ok` is not `true`. `basic_scenario._is_valid_healthz` shows the shape; it also checks only that `ok` is a boolean. |
 | **G4** | `bic-chat-complete.spec.ts` sets `test.setTimeout(120_000)` inside the test, so a `--timeout` value on the command line is ignored. | Under load, journeys longer than 120 s fail as timeouts, and the test cannot be given more time without editing it. | Read the limit from an environment variable, defaulting to 120000, or move it to the config. |
@@ -1436,3 +1417,25 @@ none has been made.
 | **G7** | The serving smoke test stops its user but not the Locust process. | The run sits idle for 200 s. | Raise `StopTest` or call `self.environment.runner.quit()` after the single request, or lower `run-time` in `config/locust.serving-smoke.conf`. |
 | **G8** | The serving scenarios do not check the content of the answer beyond "non-empty output with no error item". | A generic or irrelevant answer still passes. | Answer quality is out of scope for load tests. Check a known business question with the Playwright journey instead. |
 | **G9** | `stream_scenario.py` always uses one fixed question and opens a new conversation on every request. | This is not a multi-turn scenario, and there is no variety in questions. | Acceptable for timing. If needed, reuse `SAMPLE_QUESTIONS` from `basic_scenario.py`. |
+
+---
+
+## 14. Local BFF runs without auth
+
+These target a FastAPI BFF running on your own machine at `http://localhost:8000`.
+No token is needed. Start the BFF first.
+
+```powershell
+# Full flow (basic_scenario.py): health, me, data sources, sessions, chat, history, visualization
+.venv\Scripts\locust.exe --config config/locust.conf
+
+# Health gate only
+.venv\Scripts\locust.exe --config config/locust.local-smoke.conf
+
+# Streaming chat (/api/chat/stream), measured separately from request/response latency
+.venv\Scripts\locust.exe --config config/locust.local-stream.conf
+```
+
+Set `$env:BIC_ENABLE_FULL_FLOW = "false"` first to run only the read-only checks.
+Reports go to the `csv`/`html` paths in each `.conf` file; add
+`--csv "$Out\locust" --html "$Out\locust.html"` to keep runs apart (step 1.3).
