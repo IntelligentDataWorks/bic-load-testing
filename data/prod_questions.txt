@@ -1,0 +1,56 @@
+# Prod BIC/IRIS business questions: the routing examples in
+# lak-ds-insights-companion/configs/orchestrator.prod.yaml (extracted 2026-10-05).
+# Used by the serving-endpoint scenarios when BIC_QUESTIONS_FILE points here
+# (config/locust.prod-serving-*.conf). Same format as approved_questions.txt:
+# id|domain|kind|question[|subjects]
+
+# AI.Vision
+P01|AI.Vision|data|How is You got this slogan recognized amongst consumers in Q3 2025 in germany?
+P02|AI.Vision|data|List the top 5 brands by purchase consideration in AU (Australia) for Q4 2024.
+P03|AI.Vision|data|What is the difference in unaided brand awareness, all mentions between for male and female consumers in the united states of america, Q3 2025.
+P04|AI.Vision|data|What is the brand familiarity for Nike in IN (India) in Q2 2024?
+P05|AI.Vision|data|What is the brand future purchase intent for Lululemon in Training globally (Global 10) in Q3 2025 and what is the most strongly associated CEP for Lululemon
+
+# ShareOfSearch
+P06|ShareOfSearch|data|What is the Q1 2025 brand share of search for adidas, nike and lululemon in Germany?
+P07|ShareOfSearch|data|Which category saw the largest growth in search volume for adidas and Nike in 2024?
+P08|ShareOfSearch|data|Who leads in Trail Running search volume in Running vs Outdoor?
+P09|ShareOfSearch|data|Top adidas partner in Lifestyle for H1 2025 in EU
+P10|ShareOfSearch|data|Which market saw the highest growth in adidas search volume in Q1 2025 compared to Q1 2024?
+
+# RangeInsights
+P11|RangeInsights|data|Show me the biggest 10 sales lines that existed in SS26 but have zero articles in SS27 for Sportswear APP Women — and what was their MBV in SS26.
+P12|RangeInsights|data|How many articles do we have in Training KCC for SS27?
+P13|RangeInsights|data|How many articles of Specialist Sports, Tennis FTW Women, FW26 are currently not open for ranging?
+P14|RangeInsights|data|What is the total article count for SS27?
+P15|RangeInsights|data|What is the best performing article for FW26 range in NAM?
+P16|RangeInsights|data|Can you show me the article and Model number and the RRP for the Sawe Collection Pack adizero shoes?
+
+# FinanceInsights
+P17|FinanceInsights|data|please give net sales for backlog for Mirror Season in NAM
+P18|FinanceInsights|data|give me net sales by article for last year
+P19|FinanceInsights|data|Net Sales by Market for Mirror Season (MS).
+P20|FinanceInsights|data|please give net sales by Key Category Cluster for Business on Hand (BOH)
+P21|FinanceInsights|data|Top 20 Articles by Net Sales for BOH by Key Category Cluster
+P22|FinanceInsights|data|pls give Net Sales (NS) and Net Quantity (NQ) for TIRO
+
+# ProductBrief
+P23|ProductBrief|direct|Help me make a product brief for a running shoe for SS27 London Marathon
+P24|ProductBrief|direct|Create a product brief for the Adizero Adios Pro Evo 3 for SS27
+P25|ProductBrief|direct|Write a brief for the SS27 running campaign around the London Marathon
+P26|ProductBrief|direct|Can you draft a product brief for our top running shoe launch in Spring 2027?
+
+# ProductBriefFootball
+P27|ProductBriefFootball|direct|Write me a product brief for Manchester United 3rd jersey for the 2027/2028 season
+P28|ProductBriefFootball|direct|Draft a product brief for the Man United third kit for 2027/28
+P29|ProductBriefFootball|direct|Create a brief for the Manchester United away jersey launch
+
+# Chitchat
+P30|Chitchat|direct|hi
+P31|Chitchat|direct|hello there
+P32|Chitchat|direct|thanks!
+P33|Chitchat|direct|what can you do
+P34|Chitchat|direct|what kinds of questions can I ask you?
+P35|Chitchat|direct|what does MBV mean
+P36|Chitchat|direct|what does BOH stand for?
+P37|Chitchat|direct|define Net Sales

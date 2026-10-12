@@ -1,0 +1,54 @@
+# Environments
+.venv/
+venv/
+env/
+.env
+config/.env
+*.env.local
+
+# Streamlit local secrets (the control centre never writes one, but never commit it)
+.streamlit/secrets.toml
+
+# Credentials & tokens
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+token.json
+*.token
+.secrets/
+secrets/
+
+# Locust generated reports/results (keep test data in data/ untouched)
+results/*
+!results/.gitkeep
+*.log
+locust_stats*.csv
+locust_stats*.json
+locust_report*.html
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+playwright/.auth/
+playwright-report/
+test-results/
+
+# Control-centre local settings (guardrails/thresholds; no secrets) -- keep local
+config/app-settings.json

@@ -1,0 +1,15 @@
+{
+  "name": "bic-load-testing",
+  "version": "1.0.0",
+  "description": "Locust load/stress tests for the DS Insights Companion FastAPI BFF, modeled directly\r from [openapi.json](openapi.json).",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.2"
+  }
+}

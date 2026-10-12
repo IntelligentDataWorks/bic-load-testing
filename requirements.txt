@@ -1,0 +1,10 @@
+# Python dependencies for the Locust scenarios and the Streamlit control centre.
+#   uv venv --python 3.12
+#   uv pip install -r requirements.txt
+#
+# psutil (process-tree management) and requests (AI diagnosis client) are already
+# pulled in by locust; they are listed so the intent is explicit.
+locust>=2.40
+streamlit>=1.57
+psutil>=5.9
+requests>=2.31

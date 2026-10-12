@@ -1,0 +1,11 @@
+# Databricks Apps entry point for the BIC load-testing control centre.
+# Databricks injects STREAMLIT_SERVER_PORT (= DATABRICKS_APP_PORT); the explicit
+# address flag overrides the local-only 127.0.0.1 binding in .streamlit/config.toml.
+command:
+  - streamlit
+  - run
+  - streamlit_app.py
+  - --server.address
+  - 0.0.0.0
+  - --server.headless
+  - "true"

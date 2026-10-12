@@ -1,0 +1,2142 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DS Insights Companion API",
+    "description": "Backend-for-frontend for the DS Insights Companion React app.",
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Health",
+        "description": "Liveness probe. Makes no network calls, so it stays green while a chat is in flight.",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/healthz": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Healthz",
+        "description": "Deep check: confirms the active credential actually authenticates to the workspace.",
+        "operationId": "healthz_api_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthzResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Me",
+        "description": "Report who the caller is, derived entirely from forwarded headers.",
+        "operationId": "me_api_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Chat",
+        "description": "Answer one question.\n\nBlocking: returns only when the orchestrator is done, which takes 30-120s. The\nstreaming equivalent (``POST /api/chat/stream``) shares this same finalize step\n(see ``_finalize_chat_turn``) and ends its stream with an identical ``ChatResult``,\nso nothing built against this route has to be rewritten to move to it.\n\n``user_id`` is taken from ``user``, never from the request body.",
+        "operationId": "chat_api_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/stream": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Chat Stream",
+        "description": "Stream one chat turn as server-sent events.\n\nThe upstream orchestrator emits progress events (``{\"type\": \"status\", ...}``,\noutput-item events) throughout the turn, then one terminal\n``{\"type\": \"result\", \"data\": <raw response>}`` event carrying the same payload\nshape ``/api/chat`` gets back from a blocking call. Everything before that event\nis forwarded to the client untouched; the terminal event is intercepted, run\nthrough the same ``_finalize_chat_turn`` as ``/api/chat`` (normalize, persist,\nresolve ``user_query_id``), and replaced with ``{\"type\": \"result\", \"result\":\n<ChatResult>}`` -- the parsed contract type, not the raw agent payload. Frontend\ncode should never need to re-implement the Responses-API parsing in ``parsers.py``.\n\nThe HTTP response itself is always ``200``: by the time an error can happen here,\nthe SSE stream has already started, so failures are reported in-band as\n``{\"type\": \"error\", \"error_code\": ..., \"message\": ...}`` rather than a non-2xx\nstatus. A client that only watches for ``type == \"result\"`` must also watch for\n``type == \"error\"`` or it will hang waiting for a terminal event that never comes.",
+        "operationId": "chat_stream_api_chat_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema": {
+      "get": {
+        "tags": [
+          "schema"
+        ],
+        "summary": "Schema",
+        "description": "Return the schema/profile payload used by the Streamlit app.",
+        "operationId": "schema_api_schema_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Schema Api Schema Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visualization": {
+      "post": {
+        "tags": [
+          "visualization"
+        ],
+        "summary": "Visualization",
+        "description": "Prepare a flexible/custom chart specification from raw data rows.\n\nUsers can switch the chart type and the X/Y\ncolumns without changing the backend contract. The route returns the chosen\nchart metadata plus the normalized rows so the frontend can render it using its\nown charting library.",
+        "operationId": "visualization_api_visualization_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisualizationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisualizationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/table/sort": {
+      "post": {
+        "tags": [
+          "table"
+        ],
+        "summary": "Table Sort",
+        "description": "Sort result rows on their inferred column type, reproducing ``st.dataframe`` ordering.\n\nThe grid holds the whole result set in memory -- there is no pagination -- so the\nclient sends the rows it is displaying and gets them back reordered. Values are\nnever rewritten, only their order changes. An empty ``sort_by`` returns the rows\nuntouched together with ``column_types``, which is how the grid learns whether a\nheader sorts numerically or lexically.",
+        "operationId": "table_sort_api_table_sort_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableSortRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableSortResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Sessions",
+        "description": "Return sessions owned by the authenticated caller.",
+        "operationId": "sessions_api_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Sessions Api Sessions Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/session-chat": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Session Chat",
+        "description": "Return all chat records for one caller-owned session.",
+        "operationId": "session_chat_api_session_chat_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "Session identifier",
+              "title": "Session Id"
+            },
+            "description": "Session identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Session Chat Api Session Chat Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/query-feedback": {
+      "post": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Query Feedback",
+        "description": "Update feedback/bookmark/comment for one prior query in the caller's session.",
+        "operationId": "query_feedback_api_query_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Query Feedback Api Query Feedback Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/query-metrics": {
+      "post": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Query Metrics",
+        "description": "Attach extra metrics to one prior query in the caller's session.",
+        "operationId": "query_metrics_api_query_metrics_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryMetricsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Query Metrics Api Query Metrics Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/historical-query": {
+      "delete": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Historical Query",
+        "description": "Delete one query from a caller-owned session.",
+        "operationId": "historical_query_api_historical_query_delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "Session identifier",
+              "title": "Session Id"
+            },
+            "description": "Session identifier"
+          },
+          {
+            "name": "user_query_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "User query identifier",
+              "title": "User Query Id"
+            },
+            "description": "User query identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Historical Query Api Historical Query Delete"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/data-sources": {
+      "get": {
+        "tags": [
+          "data-sources"
+        ],
+        "summary": "Data Sources",
+        "description": "List the data sources the assistant can answer questions about.\n\nBusiness-facing metadata only -- name, description, category, refresh cadence and\nowning team -- read from the running environment's config file. Dev and prod each\nreturn their own catalogue, so the frontend renders the \"View data sources\" modal\nfrom one code path with no environment-specific lists of its own.\n\nNever returns Databricks catalog/schema/table names, Genie space ids, serving\nendpoint names, S3 paths, credentials, or agent routing rules.\n\n``id`` is a stable machine-readable identifier and is safe to key UI state on.\nA misconfigured catalogue is a ``500``, not a partial list.",
+        "operationId": "data_sources_api_data_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSourcesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Orchestrator returned an error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No usable credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Orchestrator timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChatRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Query"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Omit to start a new conversation; the backend generates and returns one."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "ChatRequest",
+        "description": "A single chat turn.\n\nDeliberately absent:\n\n- ``user_id`` -- resolved from forwarded headers, never accepted from the client.\n- ``history`` -- the backend owns conversation history. Until the history store\n  lands, every turn is independent; the field is not accepted in the meantime so\n  the contract does not have to change later."
+      },
+      "ChatResult": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "user_query_id": {
+            "type": "string",
+            "title": "User Query Id"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "summarized",
+              "clarification_needed",
+              "return_response",
+              "error"
+            ],
+            "title": "Action"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "insighter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Insighter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text2sql": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Text2Sql"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "followup_query_suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Followup Query Suggestions"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_query_id",
+          "action"
+        ],
+        "title": "ChatResult",
+        "description": "Result of one chat turn.\n\n``action`` tells the frontend which branch to render. It is **not** in the FE\ncontract PDF, which assumes every turn produces ``{insighter, text2sql}``. It does\nnot: the intent refiner can come back asking a clarifying question, and the\norchestrator has an explicit error action. Without this discriminator the FE renders\na blank bubble on both. See the changelist entry for D11.\n\n- ``summarized``           -- ``insighter`` and ``text2sql`` are populated.\n- ``clarification_needed`` -- ``message`` holds the follow-up question to render.\n- ``return_response``      -- ``message`` holds Markdown to render. Emitted by agents\n  that answer with a document rather than data (chitchat, the product-brief agents).\n  ``insighter``/``text2sql`` are null and ``followup_query_suggestions`` is empty,\n  because this action goes straight from ``resolve_output`` to END without passing\n  through the summarizer or the follow-up suggestor.\n- ``error``                -- ``message`` holds user-facing error copy from the agent."
+      },
+      "DataSource": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Id",
+            "description": "Stable machine-readable identifier. Safe to key UI state on; renaming one is breaking."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "Display name."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Description",
+            "description": "One or two sentences of business-facing copy."
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Grouping label, e.g. 'Brand & Marketing'."
+          },
+          "refresh_cadence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Cadence",
+            "description": "How often the underlying data lands, e.g. 'weekly'."
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner",
+            "description": "Team accountable for the data."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "title": "DataSource",
+        "description": "One business-facing data domain the assistant can answer questions about.\n\nThis model is the boundary between business-facing metadata and technical\nimplementation. Deliberately absent, and never to be added: Genie space ids,\nserving endpoint names, Unity Catalog catalog/schema/table names, S3 paths,\ncredentials, and agent routing rules."
+      },
+      "DataSourcesResponse": {
+        "properties": {
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Resolved app environment, 'dev' or 'prod'. Matches /api/health's app_env."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSource"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Configured sources, in config order. Empty when none are configured for this environment."
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment"
+        ],
+        "title": "DataSourcesResponse",
+        "description": "Data source catalogue configured for the environment the backend is running in."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "enum": [
+              "bad_request",
+              "unauthenticated",
+              "forbidden",
+              "not_found",
+              "upstream_timeout",
+              "upstream_error",
+              "storage_error",
+              "not_implemented",
+              "internal_error"
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "User-safe copy. Never contains internal detail."
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "Quote this when reporting a failure; it keys the server log."
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorResponse",
+        "description": "Body of every non-2xx response. Documented on every route."
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          },
+          "contract_version": {
+            "type": "string",
+            "title": "Contract Version"
+          },
+          "app_env": {
+            "type": "string",
+            "title": "App Env"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contract_version",
+          "app_env"
+        ],
+        "title": "HealthResponse",
+        "description": "Cheap liveness probe. No network calls -- safe for a container probe."
+      },
+      "HealthzResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "who": {
+            "type": "string",
+            "title": "Who"
+          },
+          "auth_mode": {
+            "type": "string",
+            "enum": [
+              "obo",
+              "pat_fallback"
+            ],
+            "title": "Auth Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "who",
+          "auth_mode"
+        ],
+        "title": "HealthzResponse",
+        "description": "Deep check: proves the active credential actually authenticates to the workspace."
+      },
+      "Insighter": {
+        "properties": {
+          "insight": {
+            "type": "string",
+            "title": "Insight",
+            "default": ""
+          },
+          "supporting_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Evidence"
+          }
+        },
+        "type": "object",
+        "title": "Insighter",
+        "description": "A single generated insight with its supporting evidence."
+      },
+      "MeResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          },
+          "auth_mode": {
+            "type": "string",
+            "enum": [
+              "obo",
+              "pat_fallback"
+            ],
+            "title": "Auth Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "name",
+          "user_id",
+          "authenticated",
+          "auth_mode"
+        ],
+        "title": "MeResponse",
+        "description": "Caller identity, derived server-side from forwarded headers."
+      },
+      "QueryFeedbackRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "user_query_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "User Query Id"
+          },
+          "user_query_feedback": {
+            "type": "string",
+            "title": "User Query Feedback",
+            "default": ""
+          },
+          "user_query_bookmark": {
+            "type": "string",
+            "title": "User Query Bookmark",
+            "default": ""
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_query_id"
+        ],
+        "title": "QueryFeedbackRequest",
+        "description": "Update user feedback/bookmark/comment for a prior turn."
+      },
+      "QueryMetricsRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "user_query_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "User Query Id"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_query_id"
+        ],
+        "title": "QueryMetricsRequest",
+        "description": "Attach arbitrary metrics fields to a prior turn record."
+      },
+      "TableSortKey": {
+        "properties": {
+          "column": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Column",
+            "description": "Column name, exactly as it appears in the rows."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "title": "Direction",
+            "description": "Ascending or descending.",
+            "default": "asc"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "column"
+        ],
+        "title": "TableSortKey",
+        "description": "One column of a sort, in priority order."
+      },
+      "TableSortRequest": {
+        "properties": {
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows",
+            "description": "Rows to sort."
+          },
+          "sort_by": {
+            "items": {
+              "$ref": "#/components/schemas/TableSortKey"
+            },
+            "type": "array",
+            "title": "Sort By",
+            "description": "Sort keys in priority order. Empty means 'do not reorder, just describe the columns'."
+          },
+          "na_position": {
+            "type": "string",
+            "enum": [
+              "first",
+              "last"
+            ],
+            "title": "Na Position",
+            "description": "Where empty values land, regardless of direction.",
+            "default": "last"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TableSortRequest",
+        "description": "Sort result rows the way ``st.dataframe`` did: on the column's inferred type, not on its text.\n\nSend the rows you are displaying and the sort the user clicked; the backend\nreturns them reordered. Send an empty ``sort_by`` to ask only for the column\ntypes, which is what the grid needs to decide which headers are sortable."
+      },
+      "TableSortResponse": {
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns",
+            "description": "Column order, taken from the supplied rows."
+          },
+          "column_types": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "number",
+                "datetime",
+                "boolean",
+                "string"
+              ]
+            },
+            "type": "object",
+            "title": "Column Types",
+            "description": "Sort type inferred per column. 'number' and 'datetime' sort numerically, not lexically."
+          },
+          "sort_by": {
+            "items": {
+              "$ref": "#/components/schemas/TableSortKey"
+            },
+            "type": "array",
+            "title": "Sort By",
+            "description": "The applied sort, echoed back."
+          },
+          "row_count": {
+            "type": "integer",
+            "title": "Row Count",
+            "description": "Number of rows returned; equals the number supplied."
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows",
+            "description": "The reordered rows, values unchanged."
+          }
+        },
+        "type": "object",
+        "required": [
+          "columns",
+          "row_count"
+        ],
+        "title": "TableSortResponse",
+        "description": "Rows in the requested order, plus the column metadata the grid renders headers from."
+      },
+      "Text2Sql": {
+        "properties": {
+          "sql_query": {
+            "type": "string",
+            "title": "Sql Query",
+            "default": ""
+          },
+          "sql_filters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Sql Filters"
+          },
+          "sql_thought_process": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sql Thought Process"
+          },
+          "sql_data": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Sql Data"
+          }
+        },
+        "type": "object",
+        "title": "Text2Sql",
+        "description": "Text-to-SQL generation result: the query, its filters, and the returned rows."
+      },
+      "VisualizationRequest": {
+        "properties": {
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows",
+            "description": "Data rows to visualize."
+          },
+          "chart_type": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "line",
+              "scatter",
+              "pie",
+              "heatmap"
+            ],
+            "title": "Chart Type",
+            "description": "Selected chart type. The backend normalizes it to one of the supported values.",
+            "default": "bar"
+          },
+          "x_col": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X Col",
+            "description": "Column used for the X axis."
+          },
+          "y_col": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y Col",
+            "description": "Column used for the Y axis."
+          },
+          "series_col": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Col",
+            "description": "Optional grouping column for series."
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Optional chart title override."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "VisualizationRequest",
+        "description": "Prepare a chart using flexible column and chart-type selection."
+      },
+      "VisualizationResponse": {
+        "properties": {
+          "chart_type": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "line",
+              "scatter",
+              "pie",
+              "heatmap"
+            ],
+            "title": "Chart Type"
+          },
+          "x_col": {
+            "type": "string",
+            "title": "X Col"
+          },
+          "y_col": {
+            "type": "string",
+            "title": "Y Col"
+          },
+          "series_col": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Col"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "numeric_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Numeric Columns"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "x_label": {
+            "type": "string",
+            "title": "X Label"
+          },
+          "y_label": {
+            "type": "string",
+            "title": "Y Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chart_type",
+          "x_col",
+          "y_col",
+          "title",
+          "columns",
+          "numeric_columns",
+          "rows",
+          "x_label",
+          "y_label"
+        ],
+        "title": "VisualizationResponse",
+        "description": "Prepared chart options for a custom visualization request."
+      }
+    }
+  }
+}

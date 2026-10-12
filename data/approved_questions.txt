@@ -1,0 +1,72 @@
+# Approved BIC/IRIS business questions: the 43 routing examples in
+# lak-ds-insights-companion/configs/orchestrator.dev.yaml (commit 4da26de, 2026-09-10).
+# Used by scenarios/approved_question_scenario.py and the BFF approved-question retest.
+#
+# One question per line: id|domain|kind|question[|subjects]
+#   kind      data   -> analytical question; completes only as `summarized` with rows
+#             direct -> chitchat, definition or product brief; completes as `return_response`
+#             multi  -> multi-domain question; completes only if every subject is addressed
+#   subjects  (multi only) ';'-separated subjects, each a ','-separated list of
+#             alternative keywords that show the subject was addressed
+# Blank lines and lines starting with # are ignored. Keep IDs stable: evidence refers to them.
+
+# AI.Vision
+Q01|AI.Vision|data|How is You got this slogan recognized amongst consumers in Q3 2025 in germany?
+Q02|AI.Vision|data|List the top 5 brands by purchase consideration in AU (Australia) for Q4 2024.
+Q03|AI.Vision|data|What is the difference in unaided brand awareness, all mentions between for male and female consumers in the united states of america, Q3 2025.
+Q04|AI.Vision|data|What is the brand familiarity for Nike in IN (India) in Q2 2024?
+Q05|AI.Vision|data|What is the brand future purchase intent for Lululemon in Training globally (Global 10) in Q3 2025 and what is the most strongly associated CEP for Lululemon
+
+# ShareOfSearch
+Q06|ShareOfSearch|data|What is the Q1 2025 brand share of search for adidas, nike and lululemon in Germany?
+Q07|ShareOfSearch|data|Which category saw the largest growth in search volume for adidas and Nike in 2024?
+Q08|ShareOfSearch|data|Who leads in Trail Running search volume in Running vs Outdoor?
+Q09|ShareOfSearch|data|Top adidas partner in Lifestyle for H1 2025 in EU
+Q10|ShareOfSearch|data|Which market saw the highest growth in adidas search volume in Q1 2025 compared to Q1 2024?
+
+# RangeInsights
+Q11|RangeInsights|data|Show me the biggest 10 sales lines that existed in SS26 but have zero articles in SS27 for Sportswear APP Women — and what was their MBV in SS26.
+Q12|RangeInsights|data|How many articles do we have in Training KCC for SS27?
+Q13|RangeInsights|data|How many articles of Specialist Sports, Tennis FTW Women, FW26 are currently not open for ranging?
+Q14|RangeInsights|data|What is the total article count for SS27?
+Q15|RangeInsights|data|What is the best performing article for FW26 range in NAM?
+Q16|RangeInsights|data|Can you show me the article and Model number and the RRP for the Sawe Collection Pack adizero shoes?
+
+# ProductReviews
+Q17|ProductReviews|data|What is the consumer sentiment breakdown by market?
+Q18|ProductReviews|data|Which product is having the highest number of negative feedback?
+Q19|ProductReviews|data|What are the top 5 negative aspects of Samba for EU in 2026?
+Q20|ProductReviews|data|What are the top 10 products with the highest number of reviews in 2025, and what is their average rating?
+Q21|ProductReviews|data|Show the sentiment trend for Hyperboost in the first 3 months after its first review date. Are early adopters more positive or negative?
+
+# FinanceInsights
+Q22|FinanceInsights|data|please give net sales for backlog for Mirror Season in NAM
+Q23|FinanceInsights|data|give me net sales by article for last year
+Q24|FinanceInsights|data|Net Sales by Market for Mirror Season (MS).
+Q25|FinanceInsights|data|please give net sales by Key Category Cluster for Business on Hand (BOH)
+Q26|FinanceInsights|data|Top 20 Articles by Net Sales for BOH by Key Category Cluster
+Q27|FinanceInsights|data|pls give Net Sales (NS) and Net Quantity (NQ) for TIRO
+
+# ProductBrief
+Q28|ProductBrief|direct|Help me make a product brief for a running shoe for SS27 London Marathon
+Q29|ProductBrief|direct|Create a product brief for the Adizero Adios Pro Evo 3 for SS27
+Q30|ProductBrief|direct|Write a brief for the SS27 running campaign around the London Marathon
+Q31|ProductBrief|direct|Can you draft a product brief for our top running shoe launch in Spring 2027?
+
+# ProductBriefFootball
+Q32|ProductBriefFootball|direct|Write me a product brief for Manchester United 3rd jersey for the 2027/2028 season
+Q33|ProductBriefFootball|direct|Draft a product brief for the Man United third kit for 2027/28
+Q34|ProductBriefFootball|direct|Create a brief for the Manchester United away jersey launch
+
+# Chitchat
+Q35|Chitchat|direct|hi
+Q36|Chitchat|direct|hello there
+Q37|Chitchat|direct|thanks!
+Q38|Chitchat|direct|what can you do
+Q39|Chitchat|direct|what kinds of questions can I ask you?
+Q40|Chitchat|direct|what does MBV mean
+Q41|Chitchat|direct|what does BOH stand for?
+Q42|Chitchat|direct|define Net Sales
+
+# Multi-Domain
+Q43|Multi-Domain|multi|What is the MBV of Samba in SS26 and how does Samba rank in share of search in Germany?|MBV,buying volume;share of search,search volume,SoS

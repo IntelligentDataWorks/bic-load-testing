@@ -1,0 +1,28 @@
+# Theme and server defaults for the BIC load-testing control centre.
+# Appearance is configured here rather than with injected CSS.
+
+[theme]
+primaryColor = "#1f6feb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f5f8"
+textColor = "#16202c"
+font = "sans-serif"
+baseRadius = "medium"
+
+[theme.sidebar]
+backgroundColor = "#f3f5f8"
+
+[server]
+# The control centre is a local operator tool: keep it bound to this machine.
+address = "127.0.0.1"
+port = 8501
+headless = true
+# Run directories and reports are written while the app is open; watching them
+# would restart the script mid-run.
+folderWatchBlacklist = ["results", "test-results", "playwright-report", "playwright/.auth", "node_modules"]
+
+[browser]
+gatherUsageStats = false
+
+[runner]
+magicEnabled = false

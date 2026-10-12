@@ -1,0 +1,6 @@
+# One sample question per line. Blank lines and lines starting with # are ignored.
+What were last week's top selling products?
+Show me revenue by region for the last quarter.
+Which campaigns had the highest conversion rate this month?
+Compare year-over-year growth for our top 5 categories.
+What is the average order value by customer segment?
