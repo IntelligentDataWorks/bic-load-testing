@@ -15,7 +15,7 @@ Ask both in one message, before running anything:
    - macOS: the runbook is `docs/RUNBOOK-mac.md`. Use zsh.
 2. **"Do you need React UI tests (Playwright, a real browser)?"** Explain the choice
    in one line: **No** is enough for FastAPI BFF and Serving endpoint tests, and skips
-   Node.js, `npm install` and the Chromium download.
+   Node.js, `npm ci` and the Chromium download.
 
 Then read the chosen runbook. From here on, "the runbook" means that file only. Run
 only the commands it gives, exactly as written. Never use a command from the other
@@ -27,28 +27,43 @@ runbook's section 10.2, and only when a step needs the answer.
 
 ## Phase 1: Prerequisites (runbook section 1)
 
+The runbook's section 1 lists the **known-good version** of every tool. Keep the
+user's setup on those versions.
+
 1. Run every **Check** command from the Software table. If the user said **No** to UI
-   tests, skip the Node.js row. Compare each version found with the **Minimum
+   tests, skip the Node.js row. Compare each version found with the **Known-good
    version** column.
-2. A tool that is installed and meets the minimum stays as it is. Never reinstall or
-   upgrade it, even if a newer version exists.
-3. List each tool that is missing or older than the minimum, with the version found
-   and the install command from the table (or the upgrade advice under it). Ask
-   before installing or upgrading each one. After any install or upgrade, tell the
-   user to open a new terminal (restart VS Code) and run `/bic-playbook` again, then
-   stop.
-4. Ask the user to confirm they can open the DEV workspace URL and the IRIS URL from
+2. **Same version:** leave it as it is. Git, Homebrew and Git Credential Manager: any
+   version is fine.
+3. **Missing:** ask before installing, then use the install command for that tool
+   from the runbook. It installs the known-good version.
+4. **Different version** (uv, Databricks CLI, Node.js): tell the user the version
+   found and the known-good version, and that the tool is shared with their other
+   projects. Ask whether to replace it with the known-good version (follow
+   **Already installed?** in the runbook) or keep theirs. Change nothing without a yes.
+5. Never upgrade npm on its own, even if npm suggests it. It comes with Node.js.
+6. After any install, tell the user to open a new terminal (restart VS Code) and run
+   `/bic-playbook` again, then stop.
+7. Ask the user to confirm they can open the DEV workspace URL and the IRIS URL from
    the Access table in their browser. If they can't, stop and tell them to request
    access from the project owner.
 
 ## Phase 2: One-time setup (runbook section 3)
 
-1. Run section 3.1. Skip it if `.venv` already exists and the verification passes.
-2. Run section 3.2 **only if the user needs UI tests**. Skip `npm install` if
-   `node_modules` already exists, but still run `npx playwright install chromium`.
-3. Run the verification commands in section 3.3 and show the output. Skip the
-   `npx playwright --version` line if the user doesn't need UI tests.
-   `render_check.py` must end with `errors=0`.
+Section 3 installs Python, the Python packages, Playwright and Chromium at exact
+versions. Use its commands exactly; never use `npm install`, `npm update`, or
+`uv pip install` with anything other than `requirements.lock.txt`.
+
+1. Run section 3.1. Skip it if `.venv` exists and section 3.3 already shows Python
+   3.12.13, Locust 2.46.6 and Streamlit 1.64.0. If Python itself differs, delete
+   `.venv` and run section 3.1 again.
+2. Run section 3.2 **only if the user needs UI tests**. Skip `npm ci` if
+   `npx playwright --version` already prints `Version 1.63.0`, but still run
+   `npx playwright install chromium`.
+3. Run the verification commands in section 3.3, show the output, and compare each
+   line with the known-good version in its comment. Skip the `npx playwright
+   --version` line if the user doesn't need UI tests. `render_check.py` must end with
+   `errors=0`.
 4. If a command fails, find the matching row in the runbook's section 12 and apply
    that fix. If no row matches, show the error and ask the user. Never delete anything
    outside `.venv` and `node_modules`.

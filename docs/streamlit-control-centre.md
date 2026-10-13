@@ -17,8 +17,8 @@ Related: [README.md](../README.md) (profiles and environment variables),
 
 Prerequisites, setup and the start command are in sections 1 to 4 of
 [RUNBOOK.md](RUNBOOK.md#1-prerequisites) (Windows) or [RUNBOOK-mac.md](RUNBOOK-mac.md#1-prerequisites) (macOS).
-The app binds to `127.0.0.1:8501` only (see [.streamlit/config.toml](../.streamlit/config.toml)).
-[app.yaml](../app.yaml) overrides that binding to `0.0.0.0` for Databricks Apps.
+The app runs only on each person's own laptop and binds to `127.0.0.1:8501` (see
+[.streamlit/config.toml](../.streamlit/config.toml)), so nobody else can reach it.
 The app never starts a test on launch. Nothing runs until you press **Start run**.
 
 ## 2. Architecture
@@ -385,7 +385,6 @@ the spec.
 # byte-compile everything
 .venv\Scripts\python.exe -m compileall -q control_centre app_pages tools
 
-# unit tests for scenarios/chat_outcome.py (pytest is not in requirements.txt)
-uv pip install pytest
+# unit tests for scenarios/chat_outcome.py (pytest comes with Locust via requirements.lock.txt)
 .venv\Scripts\python.exe -m pytest tests/python -q
 ```

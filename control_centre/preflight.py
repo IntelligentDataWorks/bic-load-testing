@@ -82,7 +82,7 @@ def check_playwright() -> Check:
     return _version_check(
         "Playwright",
         [npx, "playwright", "--version"],
-        remedy="Install it in this folder: npm install -D @playwright/test",
+        remedy="Install it in this folder: npm ci",
     )
 
 

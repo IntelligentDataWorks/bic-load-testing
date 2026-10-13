@@ -48,23 +48,58 @@ Everything runs **on your laptop**. The targets are deployed Databricks DEV serv
 
 ### Software
 
-| Tool | Needed for | Minimum version (tested) | Check | Install (if missing) |
-|---|---|---|---|---|
-| Windows 10/11 with PowerShell | Everything | - | - | - |
-| Git | Everything | any | `git --version` | `winget install Git.Git` |
-| uv (Python package manager) | Everything | any (0.11) | `uv --version` | `winget install astral-sh.uv` |
-| Python | Everything | 3.12 | `py -3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
-| Databricks CLI | Signing in to the deployed DEV services | v0.200 (v1.4.0) | `databricks --version` | `winget install Databricks.DatabricksCLI` |
-| Node.js and npm | **React UI and Combined tests only** | Node 20 (Node 24.17, npm 11.13) | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
+| Tool | Needed for | Known-good version | Check |
+|---|---|---|---|
+| Windows 11 with Windows PowerShell | Everything | Windows 11 Enterprise, PowerShell 5.1 | - |
+| Git, with Git Credential Manager | Everything | 2.54.0 (any recent version works) | `git --version` |
+| uv (Python package manager) | Everything | 0.11.31 | `uv --version` |
+| Databricks CLI | Signing in to the deployed DEV services | v1.4.0 | `databricks --version` |
+| Node.js and npm | **React UI and Combined tests only** | Node v24.17.0, npm 11.13.0 | `node --version`, `npm --version` |
 
-**Already installed?** Keep it if it meets the minimum version; nothing is reinstalled.
-If it's older, upgrade it with the tool you installed it with (for example
-`winget upgrade OpenJS.NodeJS.LTS`). The old Python-based Databricks CLI (version 0.18
-or lower) doesn't work; install the current one.
+These are the versions this project is tested with.
+Section 3 installs everything else at exact versions inside the project folder, so
+you don't install these yourself:
+
+| Installed by section 3 | Known-good version | Pinned by |
+|---|---|---|
+| Python | 3.12.13 | `uv venv --python 3.12.13` |
+| Python packages (Locust, Streamlit and their dependencies) | Locust 2.46.6, Streamlit 1.64.0 | `requirements.lock.txt` |
+| Playwright (UI tests only) | 1.63.0 | `package-lock.json` |
+| Chromium for Playwright (UI tests only) | 153.0.8010.12 (Playwright build 1243) | The Playwright version |
+
+**Install a missing tool** at its known-good version:
+
+```powershell
+# Git
+winget install --id Git.Git --exact
+
+# uv 0.11.31
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.11.31/install.ps1 | iex"
+
+# Databricks CLI v1.4.0
+winget install --id Databricks.DatabricksCLI --exact --version 1.4.0
+
+# Node.js v24.17.0 with npm 11.13.0 (UI tests only)
+winget install --id OpenJS.NodeJS.LTS --exact --version 24.17.0
+```
+
+**Already installed?** Compare your version with the **Known-good version** column:
+
+* **Same version:** keep it.
+* **Git with a different version:** keep it; any recent version works.
+* **uv, Databricks CLI or Node.js with a different version:** these tools are shared
+  with your other projects, so you decide. Either replace yours with the known-good
+  version (if it's listed in **Settings** → **Apps**, uninstall it there first, then
+  run its install command above), or keep yours, knowing this project isn't tested
+  with it.
+* **npm:** don't upgrade it on its own, even when npm prints `New major version of npm
+  available`. npm 11.13.0 comes with Node.js v24.17.0.
+* **Databricks CLI 0.18 or lower** is the old Python-based CLI and doesn't work.
+  Replace it.
 
 After installing anything, **restart VS Code** (or open a new PowerShell window outside
 VS Code) so the updated `PATH` is picked up. If `winget` is blocked on your laptop,
-install the same tools from your company software portal.
+install the same versions from your company software portal.
 
 ### Which tests do you need?
 
@@ -111,20 +146,24 @@ the GitHub account that has access to the `IntelligentDataWorks` organisation.
 
 ## 3. One-time setup
 
-Run everything in this section in PowerShell, from the folder you cloned into.
+Run everything in this section in PowerShell, from the folder you cloned into. Every
+command installs an exact, known-good version (section 1).
 
 ### 3.1 Python environment (everyone)
 
 ```powershell
-uv venv --python 3.12
-uv pip install -r requirements.txt
+uv venv --python 3.12.13
+uv pip install -r requirements.lock.txt
 ```
 
-No `uv`? Use plain Python 3.12 instead:
+`requirements.lock.txt` pins every Python package to the version this project is
+tested with.
+
+No `uv`? Use plain Python 3.12 instead. Its patch version may differ from 3.12.13:
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
 ```
 
 ### 3.2 Playwright and Chromium (UI tests only)
@@ -132,22 +171,30 @@ py -3.12 -m venv .venv
 Skip this if you only need FastAPI BFF and Serving endpoint tests.
 
 ```powershell
-npm install
+npm ci
 npx playwright install chromium
 ```
 
+`npm ci` installs exactly the versions in `package-lock.json` (Playwright 1.63.0), and
+Playwright then downloads the Chromium build that matches it. Don't use `npm install`
+or `npm update` here; they can change versions.
+
 ### 3.3 Verify the setup
 
-Every command should print a version or `ok`:
+Each command should print the known-good version, or `ok`:
 
 ```powershell
-.venv\Scripts\python.exe --version          # Python 3.12.x
-.venv\Scripts\locust.exe --version          # locust 2.x
-.venv\Scripts\streamlit.exe version         # Streamlit, version 1.57 or later
-databricks --version                        # Databricks CLI v1.x
-npx playwright --version                    # UI tests only: Version 1.63 or later
+.venv\Scripts\python.exe --version          # Python 3.12.13
+.venv\Scripts\locust.exe --version          # locust 2.46.6
+.venv\Scripts\streamlit.exe version         # Streamlit, version 1.64.0
+databricks --version                        # Databricks CLI v1.4.0
+npx playwright --version                    # UI tests only: Version 1.63.0
 .venv\Scripts\python.exe tools\render_check.py   # every page prints "ok", errors=0
 ```
+
+If Python, Locust, Streamlit or Playwright shows a different version, repeat section
+3.1 or 3.2. For a different Databricks CLI version, see **Already installed?** in
+section 1.
 
 `render_check.py` opens every page of the app headlessly. It takes about 15 seconds,
 and "missing ScriptRunContext" warnings in its output are normal.
@@ -446,7 +493,8 @@ Copilot asks for these only when a step needs them. Have the answers ready:
 |---|---|---|
 | "Are you on Windows or macOS?" | First | Your system. Copilot then follows only that runbook. |
 | "Do you need React UI tests?" | First | **Yes** for React UI or Combined tests. **No** for FastAPI BFF and Serving endpoint tests only; Copilot then skips Node.js, `npm install` and Chromium. |
-| "May I install `<tool>`?" or "May I upgrade `<tool>`?" | A prerequisite is missing, or older than its minimum version | Yes or no. Restart VS Code after installs. A tool that already meets the minimum is left as it is. |
+| "May I install `<tool>` at the known-good version?" | A prerequisite is missing | Yes or no. Restart VS Code after installs. |
+| "Your `<tool>` is version X; the known-good version is Y. Replace it, or keep yours?" | An installed tool has a different version | Your choice (section 1, **Already installed?**). Copilot changes nothing without a yes. |
 | "Can you open the DEV workspace and the IRIS URL in your browser?" | Before setup | If not, request access first (section 1) |
 | "Complete the Databricks sign-in in the browser, then press **Get token**" | Section 5.1 | Sign in with your work account. No PAT is needed. |
 | "Do you already have a `~/.databrickscfg` profile for the DEV workspace?" | Only if **Get token** fails | Say which auth type it shows. Copilot will not open the file. |
@@ -492,7 +540,7 @@ Useful follow-up questions:
 |---|---|
 | `git clone` says `Repository not found` | Your GitHub account has no access, or Git used a different saved account. Ask the project owner for access, then sign in with the right account. |
 | `uv`, `node`, `databricks` or `git` not found right after installing | Restart VS Code (or open a new PowerShell window) so `PATH` refreshes. |
-| `npm install` or `npx playwright install chromium` fails with a network error | A corporate proxy blocks downloads. Ask IT for the proxy address and set `$env:HTTPS_PROXY` in that window, or connect to the VPN. |
+| `uv venv`, `uv pip install`, `npm ci` or `npx playwright install chromium` fails with a network error | A corporate proxy blocks downloads. Ask IT for the proxy address and set `$env:HTTPS_PROXY` in that window, or connect to the VPN. |
 | `401` on a deployed target | Token missing or expired. **Authentication** → **Get token** (or **Refresh token**), then re-run. After a Streamlit restart, you always need a new token. |
 | **Run test** says `requires BIC_AUTH_TOKEN but no token is held` | Same as above: get a token first. |
 | `databricks OAuth is not configured for this host` | A PAT profile was selected. Clear **Databricks CLI profile**, keep the workspace host, press **Start browser sign-in**, then **Get token**. |

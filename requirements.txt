@@ -1,6 +1,9 @@
 # Python dependencies for the Locust scenarios and the Streamlit control centre.
-#   uv venv --python 3.12
-#   uv pip install -r requirements.txt
+# Local setup installs requirements.lock.txt (exact known-good versions) instead:
+#   uv venv --python 3.12.13
+#   uv pip install -r requirements.lock.txt
+# After changing this file, regenerate the lock (see README.md, "Changing a
+# known-good version").
 #
 # psutil (process-tree management) and requests (AI diagnosis client) are already
 # pulled in by locust; they are listed so the intent is explicit.

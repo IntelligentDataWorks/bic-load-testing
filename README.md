@@ -32,7 +32,6 @@ ui_components.py       shared Streamlit fragments
 app_pages/             one file per page (dashboard, configure, run, results, ...)
 control_centre/        all backend logic, importable without Streamlit
 tools/render_check.py  headless render check for every page
-app.yaml               Databricks Apps entry point for the control centre
 scenarios/
   auth.py               shared TokenAuthHttpUser base (reads BIC_AUTH_TOKEN, optional)
   basic_scenario.py      BicApiUser: health/healthz/me/data-sources/sessions + chat flow
@@ -49,6 +48,9 @@ config/
 tests/                        Playwright specs
 tests/python/                 pytest unit tests for chat_outcome.py
 playwright.config.ts          Playwright config; BIC_* env vars override its defaults
+package.json, package-lock.json  Playwright, pinned to the known-good version (npm ci)
+requirements.txt              Python dependency ranges; the source for requirements.lock.txt
+requirements.lock.txt         exact known-good Python packages; what local setup installs
 scripts/
   get-databricks-token.ps1    mints an OAuth U2M token into $env:BIC_AUTH_TOKEN (CLI workflow)
 data/
@@ -120,3 +122,22 @@ paths in the `.conf` file unless you override them.
 
 Adding profiles, scenarios and Playwright specs, and the checks to run after a change:
 [docs/streamlit-control-centre.md](docs/streamlit-control-centre.md) sections 13 to 17.
+
+### Changing a known-good version
+
+Setup installs exact versions so every teammate runs the same, tested toolchain. To
+move to a new version on purpose:
+
+1. **Python packages:** edit `requirements.txt` if a range must change, then
+   regenerate the lock and install it:
+   `uv pip compile requirements.txt --universal --python-version 3.12 -o requirements.lock.txt`
+   (add `--upgrade-package <name>` to move one package), then
+   `uv pip install -r requirements.lock.txt`. Without `--upgrade-package`, existing
+   pins are kept.
+2. **Playwright:** `npm install -D --save-exact @playwright/test@<version>`, then
+   `npx playwright install chromium`. Commit `package.json` and `package-lock.json`.
+3. **Python, uv, Databricks CLI, Node.js:** change the version in sections 1 and 3 of
+   both [docs/RUNBOOK.md](docs/RUNBOOK.md) and [docs/RUNBOOK-mac.md](docs/RUNBOOK-mac.md),
+   including the install commands.
+4. Run the checks in [docs/streamlit-control-centre.md section 17](docs/streamlit-control-centre.md#17-verifying-a-change-to-the-app)
+   and the smoke checks, then update the version tables in both runbooks and commit.

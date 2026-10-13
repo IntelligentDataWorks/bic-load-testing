@@ -224,10 +224,10 @@ databricks --version
 Test-Path "$env:LOCALAPPDATA\ms-playwright\chromium-*"
 ```
 
-**Expected:** one version line for each tool, similar to the table at the top, and
-`True` for Chromium. If Chromium is missing, run `npx playwright install chromium`.
-If Python packages are missing, run `uv pip install -r requirements.txt` as the
-README describes.
+**Expected:** one version line for each tool, matching the known-good versions in
+[RUNBOOK.md section 1](RUNBOOK.md#1-prerequisites), and `True` for Chromium. If
+Chromium is missing, run `npx playwright install chromium`. If Python packages are
+missing, run `uv pip install -r requirements.lock.txt` (RUNBOOK.md section 3.1).
 
 **Go/no-go:** every command must print a version. Otherwise, stop and install the
 missing tool.
@@ -1387,7 +1387,7 @@ Remove-Item Env:BIC_TEST_QUESTION -ErrorAction SilentlyContinue
 | `RuntimeError: BIC_TEST_USER_ID must be set...` | Step 1.6 was skipped | Step 1.6 |
 | `databricks current-user me`: `Error: unknown flag: --host` | In CLI v1.4.0, `current-user me` accepts only `--profile` | Use the `Invoke-RestMethod ... /scim/v2/Me` command in step 1.6 |
 | `Could not find '<file>'` or a config file error | Wrong working directory or mistyped path | `Set-Location C:\Projects\bic-load-testing`, then check with `Get-ChildItem config\locust.*.conf` |
-| `ModuleNotFoundError: locust`, or `locust.exe` not found | The virtual environment is missing | `uv venv --python 3.12` then `uv pip install -r requirements.txt` |
+| `ModuleNotFoundError: locust`, or `locust.exe` not found | The virtual environment is missing | `uv venv --python 3.12.13` then `uv pip install -r requirements.lock.txt` |
 | Chromium executable not found | The Playwright browser is not installed | `npx playwright install chromium` |
 | A BFF Locust run appears stuck at the end | A `/api/chat` call is still in flight. The BFF scenarios have no client timeout, and `--stop-timeout 180` is waiting. | Wait up to 180 s, or press Ctrl+C once. Record it as a slow or hung request. |
 | The serving run times out after 180 s | The endpoint is slower than `BIC_REQUEST_TIMEOUT_SECONDS` | Record it as a timeout. Raise `BIC_REQUEST_TIMEOUT_SECONDS` only as a deliberate, recorded decision. |
