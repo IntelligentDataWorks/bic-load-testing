@@ -2,7 +2,9 @@
 
 How to record a new IRIS browser journey with Playwright Codegen and turn it into a
 reliable spec. Playwright is already set up in this repository: install it with
-[RUNBOOK.md section 3](RUNBOOK.md#3-one-time-setup).
+section 3.2 of [RUNBOOK.md](RUNBOOK.md#32-playwright-and-chromium-ui-tests-only)
+(Windows) or [RUNBOOK-mac.md](RUNBOOK-mac.md#32-playwright-and-chromium-ui-tests-only)
+(macOS). The `npx` commands below work as written in PowerShell and in macOS Terminal.
 
 > **Do not run `npm init playwright@latest`.** It overwrites `playwright.config.ts`
 > and the existing tests.
@@ -47,7 +49,7 @@ npx playwright codegen --target=playwright-test --load-storage=playwright/.auth/
 
 Click through the journey, add an assertion for the visible result with the
 Inspector's assert tools, then close the browser and the Inspector. Check the file
-exists with `Test-Path tests\<name>.spec.ts`.
+exists with `Test-Path tests\<name>.spec.ts` (macOS: `ls tests/<name>.spec.ts`).
 
 ## 4. Refine the recording
 

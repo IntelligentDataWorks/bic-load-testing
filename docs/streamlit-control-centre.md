@@ -6,7 +6,7 @@ minting a Databricks OAuth token, running a profile, opening a report -- is
 available in the UI.
 
 This document explains how the app works inside. To install, start and use it,
-follow [RUNBOOK.md](RUNBOOK.md).
+follow [RUNBOOK.md](RUNBOOK.md) (Windows) or [RUNBOOK-mac.md](RUNBOOK-mac.md) (macOS).
 
 Related: [README.md](../README.md) (profiles and environment variables),
 [cli-reference.md](cli-reference.md), [playwright-recording.md](playwright-recording.md).
@@ -15,7 +15,8 @@ Related: [README.md](../README.md) (profiles and environment variables),
 
 ## 1. Installing and starting
 
-Prerequisites, setup and the start command are in [RUNBOOK.md sections 1 to 4](RUNBOOK.md#1-prerequisites).
+Prerequisites, setup and the start command are in sections 1 to 4 of
+[RUNBOOK.md](RUNBOOK.md#1-prerequisites) (Windows) or [RUNBOOK-mac.md](RUNBOOK-mac.md#1-prerequisites) (macOS).
 The app binds to `127.0.0.1:8501` only (see [.streamlit/config.toml](../.streamlit/config.toml)).
 [app.yaml](../app.yaml) overrides that binding to `0.0.0.0` for Databricks Apps.
 The app never starts a test on launch. Nothing runs until you press **Start run**.

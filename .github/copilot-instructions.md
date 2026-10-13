@@ -6,17 +6,22 @@ control centre (`streamlit_app.py`) that runs both.
 
 ## Where things are
 
-- Setup and running: `docs/RUNBOOK.md` is the source of truth. Follow its commands
-  exactly; do not invent alternatives.
+- Setup and running: `docs/RUNBOOK.md` (Windows) and `docs/RUNBOOK-mac.md` (macOS)
+  are the source of truth. Use only the one for the user's system. Follow its
+  commands exactly; do not invent alternatives.
 - Setup playbook for a new teammate: `.github/prompts/bic-playbook.prompt.md` (`/bic-playbook`).
 - Profiles, environment variables, layout: `README.md`.
-- Running without the app (PowerShell): `docs/cli-reference.md`.
+- Running without the app (Windows PowerShell only): `docs/cli-reference.md`.
 - App internals: `docs/streamlit-control-centre.md`.
 
 ## Rules
 
-- Use PowerShell and run commands from the repository root. Call tools through
-  `.venv\Scripts\...`; no need to activate the virtual environment.
+- Run commands from the repository root. On Windows, use PowerShell and call tools
+  through `.venv\Scripts\...`. On macOS, use zsh and call tools through
+  `.venv/bin/...`. Never mix the two. No need to activate the virtual environment.
+- Node.js, `npm install` and the Chromium download are only needed for React UI and
+  Combined tests. Don't install them for a user who only wants FastAPI BFF or Serving
+  endpoint tests.
 - Ask before installing software, and ask before any run with more than 1 user.
 - Never run the `prod-serving-*` profiles or point a test at a production host.
 - Never open, print, copy or summarise: `playwright/.auth/*`, `~/.databrickscfg`,
@@ -32,4 +37,5 @@ control centre (`streamlit_app.py`) that runs both.
 - Do not run `tests/bic-chat-recorded.spec.ts`; it is a raw recording. Always pass a
   spec path to `npx playwright test`.
 - Do not commit or push unless the user asks.
-- When something fails, look it up in `docs/RUNBOOK.md` section 12 first.
+- When something fails, look it up in section 12 (Troubleshooting) of the user's
+  runbook first.

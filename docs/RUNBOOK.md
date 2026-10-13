@@ -1,8 +1,13 @@
-# BIC Load Testing: Runbook
+<!-- Maintainers: docs/RUNBOOK-mac.md is the macOS copy of this guide, with the same
+section numbers. Keep sections 5 to 11 identical in both files. -->
+
+# BIC Load Testing: Runbook (Windows)
 
 **Start here.** This guide takes you from a fresh Windows laptop to running load and
 user-session tests against the IRIS (DS Insights Companion) DEV app, using the local
 Streamlit control centre. Setup takes about 15 minutes.
+
+> **On a Mac?** Use [RUNBOOK-mac.md](RUNBOOK-mac.md) instead.
 
 > **Let GitHub Copilot do it.** Open this folder in VS Code, open Copilot Chat in
 > **Agent** mode and type **`/bic-playbook`**. Copilot follows this runbook, asks you for
@@ -43,18 +48,27 @@ Everything runs **on your laptop**. The targets are deployed Databricks DEV serv
 
 ### Software
 
-| Tool | Tested version | Check | Install (if missing) |
-|---|---|---|---|
-| Windows 10/11 with PowerShell | - | - | - |
-| Git | any | `git --version` | `winget install Git.Git` |
-| uv (Python package manager) | 0.11 | `uv --version` | `winget install astral-sh.uv` |
-| Python | 3.12 | `py -3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
-| Node.js LTS and npm | v24.17 / 11.13 | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
-| Databricks CLI | v1.4.0 | `databricks --version` | `winget install Databricks.DatabricksCLI` |
+| Tool | Needed for | Tested version | Check | Install (if missing) |
+|---|---|---|---|---|
+| Windows 10/11 with PowerShell | Everything | - | - | - |
+| Git | Everything | any | `git --version` | `winget install Git.Git` |
+| uv (Python package manager) | Everything | 0.11 | `uv --version` | `winget install astral-sh.uv` |
+| Python | Everything | 3.12 | `py -3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
+| Databricks CLI | Signing in to the deployed DEV services | v1.4.0 | `databricks --version` | `winget install Databricks.DatabricksCLI` |
+| Node.js LTS and npm | **React UI and Combined tests only** | v24.17 / 11.13 | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
 
 After installing anything, **restart VS Code** (or open a new PowerShell window outside
 VS Code) so the updated `PATH` is picked up. If `winget` is blocked on your laptop,
 install the same tools from your company software portal.
+
+### Which tests do you need?
+
+| You want to run | Node.js and Playwright |
+|---|---|
+| **FastAPI BFF** and **Serving endpoint** tests only (Locust, API traffic) | **Not needed.** Skip the Node.js row above, section 3.2 and section 5.2. |
+| **React UI** or **Combined** tests too (Playwright, a real browser) | Needed. Follow every step. |
+
+You can add the UI setup later at any time (section 3.2).
 
 ### Access
 
@@ -92,18 +106,13 @@ the GitHub account that has access to the `IntelligentDataWorks` organisation.
 
 ## 3. One-time setup
 
-Run these from the repository folder in PowerShell:
+Run everything in this section in PowerShell, from the folder you cloned into.
+
+### 3.1 Python environment (everyone)
 
 ```powershell
-Set-Location C:\Projects\bic-load-testing
-
-# Python environment and packages (Locust, Streamlit)
 uv venv --python 3.12
 uv pip install -r requirements.txt
-
-# Playwright and its Chromium browser
-npm install
-npx playwright install chromium
 ```
 
 No `uv`? Use plain Python 3.12 instead:
@@ -113,14 +122,25 @@ py -3.12 -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-**Verify the setup.** Every command should print a version or `ok`:
+### 3.2 Playwright and Chromium (UI tests only)
+
+Skip this if you only need FastAPI BFF and Serving endpoint tests.
+
+```powershell
+npm install
+npx playwright install chromium
+```
+
+### 3.3 Verify the setup
+
+Every command should print a version or `ok`:
 
 ```powershell
 .venv\Scripts\python.exe --version          # Python 3.12.x
 .venv\Scripts\locust.exe --version          # locust 2.x
 .venv\Scripts\streamlit.exe version         # Streamlit, version 1.57 or later
-npx playwright --version                    # Version 1.63 or later
 databricks --version                        # Databricks CLI v1.x
+npx playwright --version                    # UI tests only: Version 1.63 or later
 .venv\Scripts\python.exe tools\render_check.py   # every page prints "ok", errors=0
 ```
 
@@ -130,6 +150,15 @@ and "missing ScriptRunContext" warnings in its output are normal.
 You don't need to activate the virtual environment. Every command here calls
 `.venv\Scripts\...` directly, so PowerShell's script execution policy doesn't get in
 the way.
+
+**Skipped section 3.2?** The FastAPI BFF and Serving endpoint tests work normally.
+The **Dashboard** shows Node.js, npm, Playwright and Chromium as failed; that is
+expected and doesn't block those tests. You can't run **React UI** or **Combined**
+tests or capture a browser session. To add them later, run section 3.2 and restart the
+app.
+
+Set up in the folder you'll keep using. If you move or rename the folder later,
+delete `.venv` and repeat section 3.1.
 
 ---
 
@@ -141,6 +170,12 @@ the way.
 
 Open <http://localhost:8501>. The app only listens on your own machine
 (`127.0.0.1`), and **nothing runs until you press Start run**.
+
+To check it's up from a second PowerShell window:
+
+```powershell
+(Invoke-WebRequest http://localhost:8501 -UseBasicParsing).StatusCode   # 200
+```
 
 To stop the app, press **Ctrl+C** in that PowerShell window. Your Databricks token
 lives only in the app's memory, so after a restart you sign in again (section 5.1).
@@ -172,7 +207,7 @@ The two test tools sign in differently, and each credential expires on its own:
 | Credential | Used by | Lifetime | Where it lives |
 |---|---|---|---|
 | Databricks OAuth token | Locust (API and serving tests) | About 1 hour; refresh in the app | App memory only, never on disk |
-| Saved browser session | Playwright (UI tests) | About 24 hours | `playwright/.auth/bic-user.json` (gitignored; never share it) |
+| Saved browser session | Playwright (UI tests only) | About 24 hours | `playwright/.auth/bic-user.json` (gitignored; never share it) |
 
 ### 5.1 Databricks token (for Locust tests)
 
@@ -198,6 +233,8 @@ only into that field: never into a chat, a file or a commit.
 
 ### 5.2 Browser session (for Playwright tests)
 
+UI tests only. Skip this if you skipped section 3.2.
+
 **Authentication** → **Browser session** tab:
 
 1. Press **Capture browser session**. A Chromium window and the Playwright Inspector open.
@@ -211,13 +248,13 @@ Capture a new session on the day of any demo.
 
 ## 6. First run: smoke checks
 
-Run these three short checks to prove your setup works end to end. Each one takes
-under a minute.
+Run these short checks to prove your setup works end to end. Each one takes under a
+minute. If you skipped the UI setup (section 3.2), skip check 2.
 
 | # | Check | On **Configure test** choose | Expect |
 |---|---|---|---|
 | 1 | The app is reachable and your token works | **FastAPI BFF** → profile `deployed-smoke` | Status `passed`; about 10 `GET /api/healthz` requests, 0 failures |
-| 2 | The UI loads while signed in | **React UI** → spec `bic-smoke.spec.ts` (turn **Headed** on to watch it) | `1 passed` |
+| 2 | The UI loads while signed in (**UI tests only**) | **React UI** → spec `bic-smoke.spec.ts` (turn **Headed** on to watch it) | `1 passed` |
 | 3 | The agent endpoint answers (optional) | **Serving endpoint** → profile `serving-smoke`; set `BIC_TEST_USER_ID` to your Databricks login email | 1 request, 0 failures |
 
 About check 3: the scenario sends one request and then waits out the profile's 200 s
@@ -251,6 +288,7 @@ directly at the agent.
 | **F.** Agent sessions without the UI or backend | **Serving endpoint** → `serving-stress` | A new session for every request, ID `<prefix>_<uuid>` | 0 failures |
 
 Start with **A**, then **C** with 1 user. Only add users once the previous run is clean.
+**A**, **B** and **E** need the UI setup (section 3.2); **C**, **D** and **F** don't.
 
 ### A. One real user session (Playwright)
 
@@ -345,8 +383,9 @@ What the status codes mean:
 
 ## 9. 15-minute demo script
 
-Before the audience arrives: complete section 5 (token **and** browser session), and
-check the **Dashboard** shows a green toolchain and **Looks usable**.
+The demo uses UI tests, so it needs the full setup including section 3.2. Before the
+audience arrives: complete section 5 (token **and** browser session), and check the
+**Dashboard** shows a green toolchain and **Looks usable**.
 
 | # | Do | Point out |
 |---|---|---|
@@ -381,11 +420,15 @@ Copilot also loads the repository rules in
 [.github/copilot-instructions.md](../.github/copilot-instructions.md) automatically.
 Together they make Copilot:
 
-1. Check every prerequisite in section 1 and ask before installing anything.
-2. Run the setup and verification in section 3.
-3. Start the app (section 4) and give you the URL.
-4. Walk you through sign-in (section 5). This part needs you in the browser.
-5. Walk you through the smoke checks (section 6) and explain the results.
+1. Ask whether you're on Windows or macOS, and whether you need React UI tests. It
+   then follows only the runbook for your system ([RUNBOOK.md](RUNBOOK.md) for
+   Windows, [RUNBOOK-mac.md](RUNBOOK-mac.md) for macOS), and skips Node.js,
+   `npm install` and Chromium if you don't need UI tests.
+2. Check every prerequisite in section 1 and ask before installing anything.
+3. Run the setup and verification in section 3.
+4. Start the app (section 4) and give you the URL.
+5. Walk you through sign-in (section 5). This part needs you in the browser.
+6. Walk you through the smoke checks (section 6) and explain the results.
 
 It never starts a load test above 1 user, and never touches production, unless you
 ask it to.
@@ -396,11 +439,13 @@ Copilot asks for these only when a step needs them. Have the answers ready:
 
 | Copilot asks | When | Your answer |
 |---|---|---|
+| "Are you on Windows or macOS?" | First | Your system. Copilot then follows only that runbook. |
+| "Do you need React UI tests?" | First | **Yes** for React UI or Combined tests. **No** for FastAPI BFF and Serving endpoint tests only; Copilot then skips Node.js, `npm install` and Chromium. |
 | "May I install `<tool>`?" | A prerequisite is missing | Yes or no. Restart VS Code after installs. |
 | "Can you open the DEV workspace and the IRIS URL in your browser?" | Before setup | If not, request access first (section 1) |
 | "Complete the Databricks sign-in in the browser, then press **Get token**" | Section 5.1 | Sign in with your work account. No PAT is needed. |
 | "Do you already have a `~/.databrickscfg` profile for the DEV workspace?" | Only if **Get token** fails | Say which auth type it shows. Copilot will not open the file. |
-| "Capture the browser session" | Section 5.2 | Do it in the app, then confirm **Looks usable** |
+| "Capture the browser session" | Section 5.2, UI tests only | Do it in the app, then confirm **Looks usable** |
 | "What is your Databricks login email?" | Smoke check 3 and other serving tests | Your work email. It goes into `BIC_TEST_USER_ID`. |
 | "Confirm more than 5 users / this budget" | Any stress run | Confirm, and tell the app owner first (section 11) |
 
@@ -453,11 +498,12 @@ Useful follow-up questions:
 | `RuntimeError: BIC_TEST_USER_ID must be set` | Serving tests need your Databricks login email in `BIC_TEST_USER_ID`. |
 | Locust reports 0 requests | A required setting was empty and the scenario stopped at startup. Check the `RuntimeError` in **Live logs** or `results/<run-id>/run.log`. |
 | A run shows `cancelled` immediately | Something interrupted the process. Check `results/<run-id>/run.log`. |
-| `node` / `npx` not found in preflight | Install Node.js, then restart Streamlit. Toolchain checks are cached for 10 minutes. |
-| `Chromium` missing | `npx playwright install chromium`, then **Rescan repository** on the Dashboard. |
+| `node` / `npx` not found in preflight | Only matters for UI tests. Install Node.js and run section 3.2, then restart Streamlit. Toolchain checks are cached for 10 minutes. |
+| `Chromium` missing | Only matters for UI tests. Run `npx playwright install chromium`, then **Rescan repository** on the Dashboard. |
 | A new `.conf` profile doesn't appear | **Dashboard** → **Rescan repository**. |
 | "A run is already active" | Only one run at a time. Stop it from the sidebar or **Live logs**. |
-| `streamlit.exe` / `locust.exe` not found | The virtual environment is missing. Repeat section 3. |
+| `streamlit.exe` / `locust.exe` not found, or `Fatal error in launcher` | The virtual environment is missing, or the folder was moved after setup. Delete `.venv` and repeat section 3.1. |
+| `Port 8501 is already in use` | The app is already running in another window. Use that one, or press **Ctrl+C** there first. |
 | The Playwright HTML report won't embed | It's a folder. Use **Launch playwright show-report** or download the zip. |
 
 Command-line problems are covered in [cli-reference.md section 12](cli-reference.md#12-troubleshooting).
@@ -468,6 +514,7 @@ Command-line problems are covered in [cli-reference.md section 12](cli-reference
 
 | Doc | Read it when you want to |
 |---|---|
+| [RUNBOOK-mac.md](RUNBOOK-mac.md) | Set up and run on a Mac |
 | [README.md](../README.md) | See the project layout, every Locust profile and every environment variable |
 | [streamlit-control-centre.md](streamlit-control-centre.md) | Understand how the app works inside: architecture, discovery, secret handling, adding profiles and scenarios |
 | [cli-reference.md](cli-reference.md) | Run Locust and Playwright from PowerShell without the app, plan a stress escalation, or dig into result interpretation |

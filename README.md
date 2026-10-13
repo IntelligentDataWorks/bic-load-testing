@@ -4,8 +4,10 @@ Locust load/stress tests for the DS Insights Companion FastAPI BFF (modeled dire
 from [openapi.json](openapi.json)), Playwright UI tests against the deployed React
 app, and a local Streamlit control centre that runs and reviews all of them.
 
-> **New here? Start with [docs/RUNBOOK.md](docs/RUNBOOK.md).** It covers prerequisites,
-> setup, sign-in, the first smoke checks, session tests and a demo script.
+> **New here? Start with [docs/RUNBOOK.md](docs/RUNBOOK.md) on Windows, or
+> [docs/RUNBOOK-mac.md](docs/RUNBOOK-mac.md) on a Mac.** Each covers prerequisites,
+> setup, sign-in, the first smoke checks, session tests and a demo script. Node.js and
+> Playwright are only needed for the React UI tests.
 > Using GitHub Copilot? Open the folder in VS Code and type **`/bic-playbook`** in
 > Copilot Chat (Agent mode). It runs the setup for you and asks for anything missing.
 
@@ -13,9 +15,10 @@ app, and a local Streamlit control centre that runs and reviews all of them.
 
 | Doc | Use it to |
 |---|---|
-| [docs/RUNBOOK.md](docs/RUNBOOK.md) | **Start here.** Set up, start the app, sign in, run tests, read results, troubleshoot |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | **Start here on Windows.** Set up, start the app, sign in, run tests, read results, troubleshoot |
+| [docs/RUNBOOK-mac.md](docs/RUNBOOK-mac.md) | **Start here on a Mac.** The same guide with macOS commands |
 | [docs/streamlit-control-centre.md](docs/streamlit-control-centre.md) | Understand the app's internals: architecture, auth, discovery, secret handling, extending it |
-| [docs/cli-reference.md](docs/cli-reference.md) | Run every test from PowerShell without the app, including local no-auth runs and stress escalation |
+| [docs/cli-reference.md](docs/cli-reference.md) | Run every test from Windows PowerShell without the app, including local no-auth runs and stress escalation |
 | [docs/playwright-recording.md](docs/playwright-recording.md) | Record a new Playwright journey with Codegen |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Rules Copilot follows in this repository |
 | [reports/](reports/) | Results of past test campaigns |
@@ -62,7 +65,8 @@ locust.conf                   root copy of config/locust.conf (local, no auth)
 ## Locust profiles
 
 The control centre lists every profile on **Configure test**. From PowerShell, run one
-with `.venv\Scripts\locust.exe --config <file>` (see [docs/cli-reference.md](docs/cli-reference.md)).
+with `.venv\Scripts\locust.exe --config <file>` (see [docs/cli-reference.md](docs/cli-reference.md));
+on a Mac, `.venv/bin/locust --config <file>`.
 
 | Profile (`config/locust.<name>.conf`) | Scenario | Target | Needs | Users | Purpose |
 |---|---|---|---|---:|---|

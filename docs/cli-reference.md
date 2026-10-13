@@ -3,7 +3,8 @@
 > **New to this repository?** Start with [RUNBOOK.md](RUNBOOK.md): prerequisites,
 > setup, and how to run everything from the Streamlit control centre. This document
 > is the detailed reference for running the same tests **without** the app, and for
-> planning a controlled stress escalation.
+> planning a controlled stress escalation. It is written for Windows PowerShell only;
+> on a Mac, use the control centre ([RUNBOOK-mac.md](RUNBOOK-mac.md)).
 
 This reference shows how to run the repository's Locust and Playwright tests directly
 from Windows PowerShell. It covers each test stage, what to look for in the results,
