@@ -48,14 +48,19 @@ Everything runs **on your laptop**. The targets are deployed Databricks DEV serv
 
 ### Software
 
-| Tool | Needed for | Tested version | Check | Install (if missing) |
+| Tool | Needed for | Minimum version (tested) | Check | Install (if missing) |
 |---|---|---|---|---|
 | Windows 10/11 with PowerShell | Everything | - | - | - |
 | Git | Everything | any | `git --version` | `winget install Git.Git` |
-| uv (Python package manager) | Everything | 0.11 | `uv --version` | `winget install astral-sh.uv` |
+| uv (Python package manager) | Everything | any (0.11) | `uv --version` | `winget install astral-sh.uv` |
 | Python | Everything | 3.12 | `py -3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
-| Databricks CLI | Signing in to the deployed DEV services | v1.4.0 | `databricks --version` | `winget install Databricks.DatabricksCLI` |
-| Node.js LTS and npm | **React UI and Combined tests only** | v24.17 / 11.13 | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
+| Databricks CLI | Signing in to the deployed DEV services | v0.200 (v1.4.0) | `databricks --version` | `winget install Databricks.DatabricksCLI` |
+| Node.js and npm | **React UI and Combined tests only** | Node 20 (Node 24.17, npm 11.13) | `node --version`, `npm --version` | `winget install OpenJS.NodeJS.LTS` |
+
+**Already installed?** Keep it if it meets the minimum version; nothing is reinstalled.
+If it's older, upgrade it with the tool you installed it with (for example
+`winget upgrade OpenJS.NodeJS.LTS`). The old Python-based Databricks CLI (version 0.18
+or lower) doesn't work; install the current one.
 
 After installing anything, **restart VS Code** (or open a new PowerShell window outside
 VS Code) so the updated `PATH` is picked up. If `winget` is blocked on your laptop,
@@ -441,7 +446,7 @@ Copilot asks for these only when a step needs them. Have the answers ready:
 |---|---|---|
 | "Are you on Windows or macOS?" | First | Your system. Copilot then follows only that runbook. |
 | "Do you need React UI tests?" | First | **Yes** for React UI or Combined tests. **No** for FastAPI BFF and Serving endpoint tests only; Copilot then skips Node.js, `npm install` and Chromium. |
-| "May I install `<tool>`?" | A prerequisite is missing | Yes or no. Restart VS Code after installs. |
+| "May I install `<tool>`?" or "May I upgrade `<tool>`?" | A prerequisite is missing, or older than its minimum version | Yes or no. Restart VS Code after installs. A tool that already meets the minimum is left as it is. |
 | "Can you open the DEV workspace and the IRIS URL in your browser?" | Before setup | If not, request access first (section 1) |
 | "Complete the Databricks sign-in in the browser, then press **Get token**" | Section 5.1 | Sign in with your work account. No PAT is needed. |
 | "Do you already have a `~/.databrickscfg` profile for the DEV workspace?" | Only if **Get token** fails | Say which auth type it shows. Copilot will not open the file. |

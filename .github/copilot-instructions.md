@@ -22,7 +22,9 @@ control centre (`streamlit_app.py`) that runs both.
 - Node.js, `npm install` and the Chromium download are only needed for React UI and
   Combined tests. Don't install them for a user who only wants FastAPI BFF or Serving
   endpoint tests.
-- Ask before installing software, and ask before any run with more than 1 user.
+- Ask before installing or upgrading software, and ask before any run with more
+  than 1 user. Never reinstall or upgrade a tool that already meets the minimum
+  version in the runbook.
 - Never run the `prod-serving-*` profiles or point a test at a production host.
 - Never open, print, copy or summarise: `playwright/.auth/*`, `~/.databrickscfg`,
   `.env` files, the contents of `results/`, `playwright-report/` or `test-results/`,

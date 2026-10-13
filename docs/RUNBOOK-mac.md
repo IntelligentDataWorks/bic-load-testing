@@ -54,16 +54,21 @@ Everything runs **on your laptop**. The targets are deployed Databricks DEV serv
 
 Run every command in this guide in **Terminal** (zsh), or in a terminal inside VS Code.
 
-| Tool | Needed for | Version | Check | Install (if missing) |
+| Tool | Needed for | Minimum version | Check | Install (if missing) |
 |---|---|---|---|---|
 | macOS, Apple Silicon or Intel | Everything | - | - | - |
 | Homebrew | Installing the tools below | any | `brew --version` | Follow <https://brew.sh>, or use your company's Self Service app |
 | Git | Everything | any | `git --version` | `xcode-select --install` |
 | Git Credential Manager | Signing in to GitHub in the browser when you clone | any | `git-credential-manager --version` | `brew install --cask git-credential-manager` |
-| uv (Python package manager) | Everything | 0.11 or later | `uv --version` | `brew install uv` |
+| uv (Python package manager) | Everything | any | `uv --version` | `brew install uv` |
 | Python | Everything | 3.12 | `python3.12 --version` | Not needed if you have `uv`: setup downloads Python 3.12 for you |
-| Databricks CLI | Signing in to the deployed DEV services | v1.x | `databricks --version` | `brew tap databricks/tap`, then `brew install databricks` |
-| Node.js and npm | **React UI and Combined tests only** | Node 20 or later | `node --version`, `npm --version` | `brew install node` |
+| Databricks CLI | Signing in to the deployed DEV services | v0.200 | `databricks --version` | `brew tap databricks/tap`, then `brew install databricks` |
+| Node.js and npm | **React UI and Combined tests only** | Node 20 | `node --version`, `npm --version` | `brew install node` |
+
+**Already installed?** Keep it if it meets the minimum version; nothing is reinstalled.
+If it's older, upgrade it with the tool you installed it with (for example
+`brew upgrade node`, or `nvm` if you use it). The old Python-based Databricks CLI
+(version 0.18 or lower) doesn't work; install the current one.
 
 After installing anything, **open a new Terminal window** (and restart VS Code) so the
 updated `PATH` is picked up. On Apple Silicon, the Homebrew installer ends by printing
@@ -454,7 +459,7 @@ Copilot asks for these only when a step needs them. Have the answers ready:
 |---|---|---|
 | "Are you on Windows or macOS?" | First | Your system. Copilot then follows only that runbook. |
 | "Do you need React UI tests?" | First | **Yes** for React UI or Combined tests. **No** for FastAPI BFF and Serving endpoint tests only; Copilot then skips Node.js, `npm install` and Chromium. |
-| "May I install `<tool>`?" | A prerequisite is missing | Yes or no. Restart VS Code after installs. |
+| "May I install `<tool>`?" or "May I upgrade `<tool>`?" | A prerequisite is missing, or older than its minimum version | Yes or no. Restart VS Code after installs. A tool that already meets the minimum is left as it is. |
 | "Can you open the DEV workspace and the IRIS URL in your browser?" | Before setup | If not, request access first (section 1) |
 | "Complete the Databricks sign-in in the browser, then press **Get token**" | Section 5.1 | Sign in with your work account. No PAT is needed. |
 | "Do you already have a `~/.databrickscfg` profile for the DEV workspace?" | Only if **Get token** fails | Say which auth type it shows. Copilot will not open the file. |

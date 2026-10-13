@@ -28,11 +28,16 @@ runbook's section 10.2, and only when a step needs the answer.
 ## Phase 1: Prerequisites (runbook section 1)
 
 1. Run every **Check** command from the Software table. If the user said **No** to UI
-   tests, skip the Node.js row. List anything missing, with its install command from
-   the table.
-2. Ask before installing each missing tool. After any install, tell the user to open a
-   new terminal (restart VS Code) and run `/bic-playbook` again, then stop.
-3. Ask the user to confirm they can open the DEV workspace URL and the IRIS URL from
+   tests, skip the Node.js row. Compare each version found with the **Minimum
+   version** column.
+2. A tool that is installed and meets the minimum stays as it is. Never reinstall or
+   upgrade it, even if a newer version exists.
+3. List each tool that is missing or older than the minimum, with the version found
+   and the install command from the table (or the upgrade advice under it). Ask
+   before installing or upgrading each one. After any install or upgrade, tell the
+   user to open a new terminal (restart VS Code) and run `/bic-playbook` again, then
+   stop.
+4. Ask the user to confirm they can open the DEV workspace URL and the IRIS URL from
    the Access table in their browser. If they can't, stop and tell them to request
    access from the project owner.
 
